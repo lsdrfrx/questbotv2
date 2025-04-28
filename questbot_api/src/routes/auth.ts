@@ -9,7 +9,7 @@ import { User } from "../entities/User";
 const authRouter = Router();
 const repo = PostgresSource.getRepository(User);
 
-const userExist = async (username: string): boolean => {
+const userExist = async (username: string) => {
   return (
     (await repo.findOneBy({
       username: username,
