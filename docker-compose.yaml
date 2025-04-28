@@ -2,3 +2,14 @@ services:
   postgres:
     image: postgres
     restart: always
+    env_file: .env
+    ports:
+      - $POSTGRES_PORT:$POSTGRES_PORT
+    
+  adminer:
+    image: adminer
+    restart: always
+    links:
+      - postgres
+    ports:
+      - 8080:8080
