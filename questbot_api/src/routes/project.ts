@@ -2,10 +2,12 @@ import { Router, Request, Response } from "express";
 import { Project } from "../entities/Project";
 import PostgresSource from "../db";
 import { Employee } from "../entities/Employee";
+import { Chat } from "../entities/Chat";
 
 const projectRouter = Router();
 const repo = PostgresSource.getRepository(Project);
 const employeeRepo = PostgresSource.getRepository(Employee);
+const chatRepo = PostgresSource.getRepository(Chat);
 
 // Get all projects
 projectRouter.get("/", async (req: Request, res: Response) => {
@@ -149,6 +151,7 @@ projectRouter.put(
   },
 );
 
+// Delete responsible employee
 projectRouter.delete(
   "/:id/responsible",
   async (req: Request, res: Response) => {
@@ -166,5 +169,28 @@ projectRouter.delete(
     res.json(project);
   },
 );
+
+projectRouter.put("/:id/chat/:chatId", async (req: Request, res: Response) => {
+  const project = await repo.findOneBy({
+    id: Number(req.params.id),
+  });
+  if (project === null) {
+    res.status(404).json({});
+    return;
+  }
+
+  const chat = await chatRepo.findOneBy({
+    id: Number(req.params.chatId),
+  });
+  if (chat === null) {
+    res.status(404).json({});
+    return;
+  }
+
+  project.chat = chat;
+  await repo.save(project);
+
+  res.json(project);
+});
 
 export default projectRouter;

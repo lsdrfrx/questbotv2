@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { User } from "./User";
 import { Employee } from "./Employee";
+import { Chat } from "./Chat";
 
 @Entity()
 export class Project {
@@ -21,9 +22,6 @@ export class Project {
 
   @Column("text", { nullable: true })
   projectNameFull: string;
-
-  @Column("text", { nullable: true })
-  projectChat: string;
 
   @Column("text", { nullable: true })
   branch: string;
@@ -42,6 +40,9 @@ export class Project {
 
   @ManyToOne(() => Employee, (employee) => employee.projects)
   responsibleEmployee: Employee;
+
+  @ManyToOne(() => Chat)
+  chat: Chat;
 
   @ManyToMany(() => Project, { cascade: true })
   @JoinTable({ joinColumn: { name: "subproject_id" } })
