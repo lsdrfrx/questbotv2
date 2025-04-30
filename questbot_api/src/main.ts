@@ -8,6 +8,7 @@ import { config } from "./config";
 import employeeRouter from "./routes/employee";
 import projectRouter from "./routes/project";
 import authRouter from "./routes/auth";
+import roleRouter from "./routes/role";
 
 const app = express();
 
@@ -22,7 +23,7 @@ app.use(
     algorithms: ["HS256"],
   }).unless({ path: ["/auth/signin", "/auth/signup"] }),
 );
-app.use((err: Error, req: Request, res: Response, next: Function) => {
+app.use((err: Error, _req: Request, res: Response, next: Function) => {
   if (err.name === "UnauthorizedError") {
     res.status(401).json({ message: "invalid token error" });
   } else {
@@ -34,6 +35,7 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 app.use("/employees", employeeRouter);
 app.use("/projects", projectRouter);
 app.use("/auth", authRouter);
+app.use("/roles", roleRouter);
 
 app.listen(config.QUESTBOT_API_PORT, () => {
   console.log(`Server listening on port ${config.QUESTBOT_API_PORT}`);
