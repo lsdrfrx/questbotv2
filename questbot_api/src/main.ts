@@ -9,6 +9,7 @@ import employeeRouter from "./routes/employee";
 import projectRouter from "./routes/project";
 import authRouter from "./routes/auth";
 import roleRouter from "./routes/role";
+import chatRouter from "./routes/chat";
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/employees", employeeRouter);
 app.use("/projects", projectRouter);
 app.use("/auth", authRouter);
 app.use("/roles", roleRouter);
+app.use("/chats", chatRouter);
 
 app.listen(config.QUESTBOT_API_PORT, () => {
   console.log(`Server listening on port ${config.QUESTBOT_API_PORT}`);

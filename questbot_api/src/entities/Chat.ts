@@ -1,4 +1,4 @@
-import { PrimaryGeneratedColumn, Entity, Column, ManyToMany } from "typeorm";
+import { PrimaryGeneratedColumn, Entity, Column } from "typeorm";
 
 @Entity()
 export class Chat {
