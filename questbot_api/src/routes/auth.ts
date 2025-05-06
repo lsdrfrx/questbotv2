@@ -25,7 +25,7 @@ const signToken = (data: object): string => {
   );
 };
 
-authRouter.get("/signin", async (req: Request, res: Response) => {
+authRouter.post("/signin", async (req: Request, res: Response) => {
   const data = req.body;
   console.log(data);
 
