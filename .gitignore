@@ -1,2 +1,5 @@
 node_modules/
 .env
+.direnv
+.envrc
+__pycache__/
