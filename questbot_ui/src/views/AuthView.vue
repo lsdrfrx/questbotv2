@@ -2,6 +2,7 @@
 import { ref, inject } from 'vue'
 import router from '../router/index'
 import axios from 'axios'
+import { configDotenv } from 'dotenv'
 
 const selectedType = ref('signin')
 
@@ -19,7 +20,7 @@ const handleSubmit = (event) => {
   event.preventDefault()
 
   axios
-    .post('http://localhost:3000/auth/signin', {
+    .post(`http://${process.env.QUESTBOT_API_HOST}:${process.env.QUESTBOT_API_PORT}/auth/signin`, {
       username: username.value,
       password: password.value,
       headers: {

@@ -6,6 +6,7 @@ import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
+import { configDotenv } from 'dotenv'
 
 const $cookies = inject('$cookies')
 const props = defineProps(['metadata'])
@@ -30,12 +31,15 @@ const parseMetadata = async (data) => {
   } else if (data.name === 'deadline' || data.name === 'nextTime') {
     showDatepicker.value = true
   } else if (data.relations !== undefined) {
-    const options = await axios.get(`http://localhost:3000/${data.relations}s`, {
-      headers: {
-        'Auth-Type': 'web',
-        Authorization: `Bearer ${$cookies.get('token')}`,
+    const options = await axios.get(
+      `http://${process.env.QUESTBOT_API_HOST}:${process.env.QUESTBOT_API_PORT}/${data.relations}s`,
+      {
+        headers: {
+          'Auth-Type': 'web',
+          Authorization: `Bearer ${$cookies.get('token')}`,
+        },
       },
-    })
+    )
 
     let criteria = ''
     if (data.relations === 'employee') criteria = 'usernameShort'
@@ -59,12 +63,15 @@ const parseMetadata = async (data) => {
     if (data.name === 'subprojects') {
       uri = 'project'
     }
-    const options = await axios.get(`http://localhost:3000/${uri}s`, {
-      headers: {
-        'Auth-Type': 'web',
-        Authorization: `Bearer ${$cookies.get('token')}`,
+    const options = await axios.get(
+      `http://${process.env.QUESTBOT_API_HOST}:${process.env.QUESTBOT_API_PORT}/${uri}s`,
+      {
+        headers: {
+          'Auth-Type': 'web',
+          Authorization: `Bearer ${$cookies.get('token')}`,
+        },
       },
-    })
+    )
 
     let criteria = ''
     if (uri === 'employee') criteria = 'usernameShort'

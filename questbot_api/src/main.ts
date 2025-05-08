@@ -29,6 +29,6 @@ app.use("/roles", authMiddleware, roleRouter);
 app.use("/divisions", authMiddleware, divisionRouter);
 app.use("/chats", authMiddleware, chatRouter);
 
-app.listen(config.QUESTBOT_API_PORT, () => {
+app.listen(Number(config.QUESTBOT_API_PORT), config.QUESTBOT_API_HOST, () => {
   console.log(`Server listening on port ${config.QUESTBOT_API_PORT}`);
 });
