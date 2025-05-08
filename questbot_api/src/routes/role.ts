@@ -5,6 +5,23 @@ import { Role } from "../entities/Role";
 const repo = PostgresSource.getRepository(Role);
 const roleRouter = Router();
 
+roleRouter.get("/metadata", async (req: Request, res: Response) => {
+  const metadata = repo.metadata.columns;
+  res.json(
+    metadata.map((v) => {
+      return {
+        name: v.propertyName,
+        required: v.isNullable,
+        defaultValue: v.default,
+        label: v.comment,
+        value: null,
+        type: v.type,
+        relations: v.relationMetadata?.inverseEntityMetadata.tableName,
+      };
+    }),
+  );
+});
+
 // Get all roles
 roleRouter.get("/", async (req: Request, res: Response) => {
   const roles = await repo.find();

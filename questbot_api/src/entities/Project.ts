@@ -11,6 +11,7 @@ import {
 import { User } from "./User";
 import { Employee } from "./Employee";
 import { Chat } from "./Chat";
+import { Division } from "./Division";
 
 @Entity()
 export class Project {
@@ -22,12 +23,6 @@ export class Project {
 
   @Column("text", { nullable: true })
   projectNameFull: string;
-
-  @Column("text", { nullable: true })
-  branch: string;
-
-  @Column("text", { nullable: true })
-  bureau: string;
 
   @Column("integer", { default: Number(moment().format("YYYY")) })
   startYear: number;
@@ -43,6 +38,15 @@ export class Project {
 
   @ManyToOne(() => Chat)
   chat: Chat;
+
+  @ManyToOne(() => Division)
+  branch: Division;
+
+  @ManyToOne(() => Division)
+  bureau: Division;
+
+  @ManyToOne(() => Division)
+  club: Division;
 
   @ManyToMany(() => Project, { cascade: true })
   @JoinTable({ joinColumn: { name: "subproject_id" } })

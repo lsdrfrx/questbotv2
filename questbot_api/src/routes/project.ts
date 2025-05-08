@@ -3,12 +3,29 @@ import { Project } from "../entities/Project";
 import PostgresSource from "../db";
 import { Employee } from "../entities/Employee";
 import { Chat } from "../entities/Chat";
+import { getManager } from "typeorm";
 
 const projectRouter = Router();
 const repo = PostgresSource.getRepository(Project);
 const employeeRepo = PostgresSource.getRepository(Employee);
 const chatRepo = PostgresSource.getRepository(Chat);
 
+projectRouter.get("/metadata", async (req: Request, res: Response) => {
+  const metadata = repo.metadata.columns;
+
+  res.json(
+    metadata.map((v) => {
+      return {
+        name: v.propertyName,
+        required: v.isNullable,
+        defaultValue: v.default,
+        label: v.comment,
+        type: v.type,
+        relations: v.relationMetadata?.inverseEntityMetadata.tableName,
+      };
+    }),
+  );
+});
 // Get all projects
 projectRouter.get("/", async (req: Request, res: Response) => {
   const projects = await repo.find();
@@ -22,6 +39,7 @@ projectRouter.get("/:id", async (req: Request, res: Response) => {
     relations: {
       subprojects: true,
       responsibleEmployee: true,
+      chat: true,
     },
   });
   if (project === null) {
@@ -33,7 +51,43 @@ projectRouter.get("/:id", async (req: Request, res: Response) => {
 
 // Create new project
 projectRouter.post("/", async (req: Request, res: Response) => {
-  const project = repo.create(req.body);
+  const data = req.body;
+  const project = repo.create({
+    projectName: data.projectName,
+    projectNameFull: data.projectNameFull,
+    contractorName: data.contractorName,
+    contractorOrganization: data.contractorOrganization,
+    startYear: data.startYear,
+  });
+
+  console.log(project);
+
+  if (data.chat !== undefined) {
+    const chat = await chatRepo.findOneBy({
+      name: data.chat,
+    });
+
+    if (chat === null) {
+      res.status(404).json({ message: "chat not found" });
+      return;
+    }
+
+    project.chat = chat;
+  }
+
+  if (data.responsibleEmployee !== undefined) {
+    const employee = await employeeRepo.findOneBy({
+      usernameShort: data.responsibleEmployee,
+    });
+
+    if (employee === null) {
+      res.status(404).json({ message: "employee not found" });
+      return;
+    }
+
+    project.responsibleEmployee = employee;
+  }
+
   const result = await repo.save(project);
   res.json(result);
 });

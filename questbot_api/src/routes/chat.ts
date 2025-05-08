@@ -5,6 +5,22 @@ import { Chat } from "../entities/Chat";
 const repo = PostgresSource.getRepository(Chat);
 const chatRouter = Router();
 
+chatRouter.get("/metadata", async (req: Request, res: Response) => {
+  const metadata = repo.metadata.columns;
+  res.json(
+    metadata.map((v) => {
+      return {
+        name: v.propertyName,
+        required: v.isNullable,
+        defaultValue: v.default,
+        label: v.comment,
+        type: v.type,
+        relations: v.relationMetadata?.inverseEntityMetadata.tableName,
+      };
+    }),
+  );
+});
+
 // Get all chats
 chatRouter.get("/", async (req: Request, res: Response) => {
   const chats = await repo.find();

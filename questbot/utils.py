@@ -21,7 +21,7 @@ def stringify_reminders(reminders: list[timedelta]) -> str:
     return ",".join(result)
 
 
-def parse_reminders(reminders: str) -> list[timedelta]:
+def parse_reminders(reminders: str) -> list[timedelta] | None:
     """
     Parse reminders string (i.e. `"7d, 1d,3h,15m"`) to list of `timedelta`
     """
@@ -30,7 +30,7 @@ def parse_reminders(reminders: str) -> list[timedelta]:
         reminders = reminders.lower()
         reminders = reminders.replace(" ", "")
     except AttributeError:
-        raise ValueError("Unable to parse reminders")
+        return None
 
     result = []
 
@@ -40,7 +40,7 @@ def parse_reminders(reminders: str) -> list[timedelta]:
         try:
             value, unit = int(reminder[:-1]), reminder[-1]
         except ValueError:
-            raise ValueError("Unable to parse reminders")
+            return None
 
         match unit:
             case "w":
@@ -52,6 +52,6 @@ def parse_reminders(reminders: str) -> list[timedelta]:
             case "m":
                 result.append(timedelta(minutes=value))
             case _:
-                raise ValueError("Unable to parse reminders")
+                return None
 
     return result
