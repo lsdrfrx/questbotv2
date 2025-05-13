@@ -2,6 +2,7 @@
 import { defineProps, defineEmits, ref, inject } from 'vue'
 import FormField from '../components/FormField.vue'
 import axios from 'axios'
+import { config } from '../config'
 
 const props = defineProps(['columns', 'closeForm', 'name'])
 const emit = defineEmits(['closePopup'])
@@ -12,7 +13,7 @@ const sendPost = (event) => {
   console.log(fieldData.value)
   axios
     .post(
-      `http://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${props.name}`,
+      `https://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${props.name}`,
       fieldData.value,
       {
         headers: {

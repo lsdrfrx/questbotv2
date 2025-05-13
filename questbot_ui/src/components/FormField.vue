@@ -6,6 +6,7 @@ import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
+import { config } from '../config'
 
 const $cookies = inject('$cookies')
 const props = defineProps(['metadata'])
@@ -63,7 +64,7 @@ const parseMetadata = async (data) => {
       uri = 'project'
     }
     const options = await axios.get(
-      `http://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${uri}s`,
+      `https://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${uri}s`,
       {
         headers: {
           'Auth-Type': 'web',

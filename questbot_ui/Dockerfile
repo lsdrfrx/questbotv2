@@ -1,16 +1,13 @@
-FROM node:20 AS builder
+FROM node:20
 
 WORKDIR /app
 COPY package.json yarn.lock ./
 
 RUN yarn install
 COPY . .
-RUN yarn build
 
+EXPOSE 9900
 
-FROM nginx:stable-alpine AS production
+ENTRYPOINT yarn run vite --host 0.0.0.0 --port 9900
 
-COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
 
