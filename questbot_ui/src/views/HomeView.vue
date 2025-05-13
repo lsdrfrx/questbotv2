@@ -5,33 +5,28 @@ import CustomTable from '../components/CustomTable.vue'
 import { ref, onMounted, onUpdated, inject } from 'vue'
 import axios from 'axios'
 import router from '../router/index'
-import { configDotenv } from 'dotenv'
+import { config } from '../config'
 
 const state = ref('employees')
 const data = ref([])
 const $cookies = inject('$cookies')
 const key = ref(0)
 
-configDotenv()
-
 const changeState = (event) => {
   axios
-    .get(
-      `http://${process.env.QUESTBOT_API_HOST}:${process.env.QUESTBOT_API_PORT}/${event}/metadata`,
-      {
-        headers: {
-          'Auth-Type': 'web',
-          Authorization: `Bearer ${$cookies.get('token')}`,
-        },
+    .get(`http://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${event}/metadata`, {
+      headers: {
+        'Auth-Type': 'web',
+        Authorization: `Bearer ${$cookies.get('token')}`,
       },
-    )
+    })
     .then((res) => {
       state.value = event
       return res.data
     })
     .then((resdata) => {
       axios
-        .get(`http://${process.env.QUESTBOT_API_HOST}:${process.env.QUESTBOT_API_PORT}/${event}`, {
+        .get(`http://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${event}`, {
           headers: {
             'Auth-Type': 'web',
             Authorization: `Bearer ${$cookies.get('token')}`,

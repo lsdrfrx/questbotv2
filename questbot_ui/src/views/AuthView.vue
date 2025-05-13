@@ -20,7 +20,7 @@ const handleSubmit = (event) => {
   event.preventDefault()
 
   axios
-    .post(`http://${process.env.QUESTBOT_API_HOST}:${process.env.QUESTBOT_API_PORT}/auth/signin`, {
+    .post(`http://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/auth/signin`, {
       username: username.value,
       password: password.value,
       headers: {
