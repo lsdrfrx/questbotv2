@@ -3,20 +3,14 @@ services:
     image: postgres
     restart: always
     env_file: .env
-    ports:
-      - $POSTGRES_PORT:$POSTGRES_PORT
-    
-  adminer:
-    image: adminer
-    restart: always
-    links:
-      - postgres
-    ports:
-      - 8080:8080
 
   api:
-    image: node
+    build:
+      context: ./questbot_api
+      dockerfile: ./Dockerfile
     restart: always
+    depends_on:
+      - postgres
     env_file: .env
 
   questbot:
@@ -31,8 +25,10 @@ services:
   ui:
     build:
       context: ./questbot_ui
-      dockerfile: ./questbot_ui/Dockerfile
+      dockerfile: ./Dockerfile
     restart: always
     depends_on:
       - api
     env_file: .env
+    ports:
+      - 9900:80
