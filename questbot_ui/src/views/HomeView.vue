@@ -13,10 +13,8 @@ const $cookies = inject('$cookies')
 const key = ref(0)
 
 const changeState = (event) => {
-  console.log(config)
-  console.log(config.QUESTBOT_API_HOST)
   axios
-    .get(`https://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${event}/metadata`, {
+    .get(`${config.QUESTBOT_API_HOST}/${event}/metadata`, {
       headers: {
         'Auth-Type': 'web',
         Authorization: `Bearer ${$cookies.get('token')}`,
@@ -28,7 +26,7 @@ const changeState = (event) => {
     })
     .then((resdata) => {
       axios
-        .get(`https://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${event}`, {
+        .get(`${config.QUESTBOT_API_HOST}/${event}`, {
           headers: {
             'Auth-Type': 'web',
             Authorization: `Bearer ${$cookies.get('token')}`,

@@ -32,7 +32,7 @@ const parseMetadata = async (data) => {
     showDatepicker.value = true
   } else if (data.relations !== undefined) {
     const options = await axios.get(
-      `http://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${data.relations}s`,
+      `${config.QUESTBOT_API_HOST}/${data.relations}s`,
       {
         headers: {
           'Auth-Type': 'web',
@@ -64,7 +64,7 @@ const parseMetadata = async (data) => {
       uri = 'project'
     }
     const options = await axios.get(
-      `https://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${uri}s`,
+      `${config.QUESTBOT_API_HOST}/${uri}s`,
       {
         headers: {
           'Auth-Type': 'web',

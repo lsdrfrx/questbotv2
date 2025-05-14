@@ -16,8 +16,8 @@ const app = express();
 
 // Inject middlewares
 app.use(cors({
-origin: ["https://qb.theorchem.ru", "https://ui:9900"],
-  methods: "GET,POST,PUT,DELETE",
+  origin: "*",
+  methods: "*",
   allowedHeaders: "*",
 }));
 app.use(express.json());
@@ -25,13 +25,13 @@ app.use(express.urlencoded());
 app.use(morgan("[:method] :url Status :status :response-time ms"));
 
 // Inject routers
-app.use("/employees", authMiddleware, employeeRouter);
-app.use("/projects", authMiddleware, projectRouter);
-app.use("/quests", authMiddleware, questRouter);
-app.use("/auth", authRouter);
-app.use("/roles", authMiddleware, roleRouter);
-app.use("/divisions", authMiddleware, divisionRouter);
-app.use("/chats", authMiddleware, chatRouter);
+app.use("/api/employees", authMiddleware, employeeRouter);
+app.use("/api/projects", authMiddleware, projectRouter);
+app.use("/api/quests", authMiddleware, questRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/roles", authMiddleware, roleRouter);
+app.use("/api/divisions", authMiddleware, divisionRouter);
+app.use("/api/chats", authMiddleware, chatRouter);
 
 app.get("/", (req, res) => {
   res.json({});

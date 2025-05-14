@@ -13,7 +13,7 @@ const sendPost = (event) => {
   console.log(fieldData.value)
   axios
     .post(
-      `https://${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}/${props.name}`,
+      `${config.QUESTBOT_API_HOST}/${props.name}`,
       fieldData.value,
       {
         headers: {

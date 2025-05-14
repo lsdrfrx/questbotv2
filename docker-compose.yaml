@@ -24,12 +24,14 @@ services:
         restart: true
     env_file: .env
     healthcheck:
-      test: curl -f api:$QUESTBOT_API_PORT/
+      test: curl -f api:3000
       timeout: 3s
       interval: 10s
       retries: 5
     networks:
       - web
+    ports:
+      - 9933:3000
 
   bot:
     build:
