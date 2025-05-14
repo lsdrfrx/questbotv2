@@ -10,18 +10,13 @@ const fieldData = ref({})
 
 const sendPost = (event) => {
   event.preventDefault()
-  console.log(fieldData.value)
   axios
-    .post(
-      `${config.QUESTBOT_API_HOST}/${props.name}`,
-      fieldData.value,
-      {
-        headers: {
-          'Auth-Type': 'web',
-          Authorization: `Bearer ${$cookies.get('token')}`,
-        },
+    .post(`${config.QUESTBOT_API_HOST}/${props.name}`, fieldData.value, {
+      headers: {
+        'Auth-Type': 'web',
+        Authorization: `Bearer ${$cookies.get('token')}`,
       },
-    )
+    })
     .then((res) => {
       emit('closePopup')
     })

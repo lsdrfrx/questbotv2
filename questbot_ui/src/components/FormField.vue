@@ -31,15 +31,12 @@ const parseMetadata = async (data) => {
   } else if (data.name === 'deadline' || data.name === 'nextTime') {
     showDatepicker.value = true
   } else if (data.relations !== undefined) {
-    const options = await axios.get(
-      `${config.QUESTBOT_API_HOST}/${data.relations}s`,
-      {
-        headers: {
-          'Auth-Type': 'web',
-          Authorization: `Bearer ${$cookies.get('token')}`,
-        },
+    const options = await axios.get(`${config.QUESTBOT_API_HOST}/${data.relations}s`, {
+      headers: {
+        'Auth-Type': 'web',
+        Authorization: `Bearer ${$cookies.get('token')}`,
       },
-    )
+    })
 
     let criteria = ''
     if (data.relations === 'employee') criteria = 'usernameShort'
@@ -63,15 +60,12 @@ const parseMetadata = async (data) => {
     if (data.name === 'subprojects') {
       uri = 'project'
     }
-    const options = await axios.get(
-      `${config.QUESTBOT_API_HOST}/${uri}s`,
-      {
-        headers: {
-          'Auth-Type': 'web',
-          Authorization: `Bearer ${$cookies.get('token')}`,
-        },
+    const options = await axios.get(`${config.QUESTBOT_API_HOST}/${uri}s`, {
+      headers: {
+        'Auth-Type': 'web',
+        Authorization: `Bearer ${$cookies.get('token')}`,
       },
-    )
+    })
 
     let criteria = ''
     if (uri === 'employee') criteria = 'usernameShort'

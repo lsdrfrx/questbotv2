@@ -9,11 +9,13 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { title: 'Questbot - T24' },
     },
     {
       path: '/auth',
       name: 'auth',
       component: AuthView,
+      meta: { title: 'Авторизация - T24' },
     },
   ],
 })

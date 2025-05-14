@@ -34,12 +34,10 @@ const changeState = (event) => {
         })
         .then((res) => {
           state.value = event
-          console.log(resdata)
           res.data.forEach((row) => {
             Object.entries(row).forEach((value) => {
               const key = value[0]
               const val = value[1]
-              console.log(key, val)
               resdata.filter((v, k, a) => {
                 if (v.name === key) {
                   if (resdata[k].value === undefined || resdata[k].value === null)
@@ -53,7 +51,6 @@ const changeState = (event) => {
           key.value++
         })
         .catch((err) => {
-          console.log(err)
           if (err.status === 403) {
             router.push('/auth')
           }

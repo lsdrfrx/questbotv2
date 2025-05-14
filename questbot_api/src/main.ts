@@ -15,14 +15,23 @@ import divisionRouter from "./routes/division";
 const app = express();
 
 // Inject middlewares
-app.use(cors({
-  origin: "*",
-  methods: "*",
-  allowedHeaders: "*",
-}));
+app.use(
+  cors({
+    origin: "*",
+    methods: "*",
+    allowedHeaders: "*",
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(morgan("[:method] :url Status :status :response-time ms"));
+app.use(
+  cors({
+    origin: "*",
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "*",
+  }),
+);
 
 // Inject routers
 app.use("/api/employees", authMiddleware, employeeRouter);
@@ -38,5 +47,7 @@ app.get("/", (req, res) => {
 });
 
 app.listen(Number(config.QUESTBOT_API_PORT), config.QUESTBOT_API_HOST, () => {
-console.log(`Server listening on ${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}`);
+  console.log(
+    `Server listening on ${config.QUESTBOT_API_HOST}:${config.QUESTBOT_API_PORT}`,
+  );
 });
