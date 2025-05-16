@@ -13,6 +13,9 @@ export class User {
   @Column("text", { nullable: false })
   username: string;
 
+  @Column("text", { default: "user" })
+  role: string;
+
   @Column("text", { nullable: false })
   hashedPassword: string;
 
