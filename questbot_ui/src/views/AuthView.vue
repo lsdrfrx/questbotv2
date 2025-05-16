@@ -9,14 +9,16 @@ const selectedType = ref('signin')
 const username = ref('')
 const password = ref('')
 const repeatPassword = ref('')
+const errorText = ref('')
 
 const $cookies = inject('$cookies')
 
 const changeType = (type) => {
+  errorText.value = ""
   selectedType.value = type
 }
 
-const handleSubmit = (event) => {
+const handleSubmitSignIn = (event) => {
   event.preventDefault()
 
   axios
@@ -33,28 +35,47 @@ const handleSubmit = (event) => {
       router.push('/')
     })
     .catch((err) => {
-      console.log(err.status)
+      if (err.status === 400) {
+        errorText.value = "Неверный логин или пароль"
+      }
     })
+}
+
+const handleSubmitSignUp = (event) => {
+  event.preventDefault()
+  console.log("signup")
 }
 </script>
 
 <template>
   <div class="auth">
     <div class="select_type">
-      <button @click="changeType('signin')" :class="{ active: selectedType.value === 'signin' }">
+      <button @click="changeType('signin')" :class="{ 'active': selectedType === 'signin' }">
         Вход
       </button>
-      <button @click="changeType('signup')" :class="{ active: selectedType.value === 'signup' }">
+      <button @click="changeType('signup')" :class="{ 'active': selectedType === 'signup' }">
         Регистрация
       </button>
     </div>
 
-    <div class="form">
-      <form @submit="handleSubmit">
-        <input v-model="username" />
-        <input type="password" v-model="password" />
+    <div v-if="selectedType === 'signin'" class="form">
+      <form @submit="handleSubmitSignIn">
+        <input v-model="username" placeholder="Имя пользователя" />
+        <input type="password" v-model="password" placeholder="Пароль" />
 
         <button type="submit">Войти</button>
+        <span class="error" v-if="errorText !== ''">{{errorText}}</span>
+      </form>
+    </div>
+
+    <div v-if="selectedType === 'signup'" class="form">
+      <form @submit="handleSubmitSignUp">
+        <input v-model="username" placeholder="Имя пользователя"/>
+        <input type="password" v-model="password" placeholder="Пароль" />
+        <input type="password" v-model="repeatPassword" placeholder="Повторите пароль" />
+
+        <button type="submit">Зарегистрироваться</button>
+        <span class="error" v-if="errorText !== ''">{{errorText}}</span>
       </form>
     </div>
   </div>
@@ -118,7 +139,8 @@ button {
   background-color: var(--color-background-soft);
   border: 1px solid var(--color-border);
   padding: 8px;
-  width: 150px;
+  min-width: 150px;
+  max-width: 250px;
   font-size: 18px;
   transition: 0.2s all ease-in;
 }
@@ -126,5 +148,10 @@ button {
 form button:hover {
   color: hsla(160, 100%, 37%, 1);
   border: 1px solid hsla(160, 100%, 37%, 1);
+}
+
+form .error {
+  color: red;
+  text-align: center;
 }
 </style>

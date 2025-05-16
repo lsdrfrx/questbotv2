@@ -10,11 +10,10 @@ const authRouter = Router();
 const repo = PostgresSource.getRepository(User);
 
 const userExist = async (username: string) => {
-  return (
-    (await repo.findOneBy({
+  return await (repo.findOneBy({
       username: username,
-    })) === null
-  );
+    })) !== null
+  
 };
 
 const signToken = (data: object): string => {
@@ -27,9 +26,10 @@ const signToken = (data: object): string => {
 
 authRouter.post("/signin", async (req: Request, res: Response) => {
   const data = req.body;
-  console.log(data);
 
-  if (!userExist(data.username)) {
+  const exist = await userExist(data.username);
+
+  if (!exist) {
     res.status(400).json({ message: "wrong username or password" });
     return;
   }
@@ -40,7 +40,7 @@ authRouter.post("/signin", async (req: Request, res: Response) => {
 
   const hashedPassword = hash("sha256", data.password);
 
-  if (user!.hashedPassword !== hashedPassword) {
+  if (user.hashedPassword !== hashedPassword) {
     res.status(400).json({ message: "wrong username or password" });
     return;
   }
