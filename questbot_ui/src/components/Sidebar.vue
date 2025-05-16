@@ -9,6 +9,7 @@
     <button @click="$emit('changeState', 'divisions')">Отделы</button>
     <button @click="$emit('changeState', 'chats')">Чаты</button>
     <button @click="$emit('changeState', 'roles')">Роли</button>
+    <button @click="$emit('changeState', 'users')">Пользователи</button>
     <button @click="$emit('changeState', 'preferences')">Настройки</button>
   </div>
 </template>

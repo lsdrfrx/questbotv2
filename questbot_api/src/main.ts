@@ -9,8 +9,9 @@ import authRouter from "./routes/auth";
 import questRouter from "./routes/quest";
 import roleRouter from "./routes/role";
 import chatRouter from "./routes/chat";
-import { authMiddleware } from "./middlewares";
 import divisionRouter from "./routes/division";
+import userRouter from "./routes/user";
+import { adminOnlyMiddleware, authMiddleware } from "./middlewares";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/roles", authMiddleware, roleRouter);
 app.use("/api/divisions", authMiddleware, divisionRouter);
 app.use("/api/chats", authMiddleware, chatRouter);
+app.use("/api/users", adminOnlyMiddleware, userRouter);
 
 app.get("/", (req, res) => {
   res.json({});

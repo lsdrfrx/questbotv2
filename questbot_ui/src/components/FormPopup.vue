@@ -1,17 +1,31 @@
 <script setup>
-import { defineProps, defineEmits, ref, inject } from 'vue'
+import { defineProps, defineEmits, ref, inject, onMounted } from 'vue'
 import FormField from '../components/FormField.vue'
 import axios from 'axios'
 import { config } from '../config'
 
-const props = defineProps(['columns', 'closeForm', 'name'])
+const props = defineProps(['columns', 'data', 'closeForm', 'name'])
 const emit = defineEmits(['closePopup'])
 const fieldData = ref({})
 
-const sendPost = (event) => {
+const createRow = (event) => {
   event.preventDefault()
   axios
     .post(`${config.QUESTBOT_API_HOST}/${props.name}`, fieldData.value, {
+      headers: {
+        'Auth-Type': 'web',
+        Authorization: `Bearer ${$cookies.get('token')}`,
+      },
+    })
+    .then((res) => {
+      emit('closePopup')
+    })
+}
+
+const modifyRow = (event) => {
+  event.preventDefault()
+  axios
+    .put(`${config.QUESTBOT_API_HOST}/${props.name}/${props.data[0]}`, fieldData.value, {
       headers: {
         'Auth-Type': 'web',
         Authorization: `Bearer ${$cookies.get('token')}`,
@@ -37,9 +51,10 @@ const handleInput = (event, data) => {
           </span>
           <span class="required">{{ !column.required ? '*' : '' }}</span>
           <br />
-          <FormField @changeInput="handleInput" :metadata="column" :fieldData="fieldData" />
+          <FormField @changeInput="handleInput" :editValue="props.data[index]" :metadata="column" :fieldData="fieldData" />
         </div>
-        <button @click.self="sendPost">Создать</button>
+        <button v-if="Object.keys(props.data).length > 0" @click.self="modifyRow">Изменить</button>
+        <button v-else @click.self="createRow">Создать</button>
       </form>
     </div>
   </div>

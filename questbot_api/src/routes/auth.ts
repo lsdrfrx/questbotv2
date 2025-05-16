@@ -45,7 +45,7 @@ authRouter.post("/signin", async (req: Request, res: Response) => {
     return;
   }
 
-  const token = signToken({ username: data.username });
+  const token = signToken({ username: user.username, role: user.role });
 
   res.json({ token: token });
 });
@@ -62,6 +62,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
 
   const user = repo.create({
     username: data.username,
+    role: data.role,
     hashedPassword: hashedPassword,
   });
 

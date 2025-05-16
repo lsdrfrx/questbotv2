@@ -1,5 +1,5 @@
 <script lang="jsx" setup>
-import { defineProps, ref, inject, onUpdated, onMounted } from 'vue'
+import { defineProps, defineEmits, ref, inject, onUpdated, onMounted, watch } from 'vue'
 import axios from 'axios'
 import moment from 'moment'
 import Datepicker from '@vuepic/vue-datepicker'
@@ -9,7 +9,8 @@ import 'vue-multiselect/dist/vue-multiselect.min.css'
 import { config } from '../config'
 
 const $cookies = inject('$cookies')
-const props = defineProps(['metadata'])
+const props = defineProps(['editValue', 'metadata'])
+const emit = defineEmits(["changeInput"])
 
 const showDatepicker = ref(false)
 const showText = ref(false)
@@ -25,11 +26,19 @@ const autocompleteOptions = ref([])
 const multiselectData = ref([])
 const multiselectOptions = ref([])
 
-const parseMetadata = async (data) => {
+const parseMetadata = async (data, editValue=null) => {
   if (data.type === 'boolean') {
     showCheckbox.value = true
+    if (editValue) {
+      checkboxData.value = editValue
+      emit('changeInput', props.metadata.name, checkboxData)
+    }
   } else if (data.name === 'deadline' || data.name === 'nextTime') {
     showDatepicker.value = true
+    if (editValue) {
+      datepickerData.value = editValue
+      emit('changeInput', props.metadata.name, datepickerData)
+    }
   } else if (data.relations !== undefined) {
     const options = await axios.get(`${config.QUESTBOT_API_HOST}/${data.relations}s`, {
       headers: {
@@ -49,6 +58,10 @@ const parseMetadata = async (data) => {
     autocompleteOptions.value = options.data.map((v) => {
       return { name: v[criteria] }
     })
+    if (editValue) {
+      autocompleteData.value = editValue
+      emit('changeInput', props.metadata.name, autocompleteData)
+    }
   } else if (data.joins !== undefined) {
     let uri
     if (data.name === 'recepientChats') {
@@ -78,12 +91,21 @@ const parseMetadata = async (data) => {
     multiselectOptions.value = options.data.map((v) => {
       return { name: v[criteria] }
     })
+    if (editValue) {
+      multiselectData.value = editValue
+      emit('changeInput', props.metadata.name, multiselectData)
+    }
   } else if (data.type === 'text' || data.type == 'integer') {
     showText.value = true
+    if (editValue) {
+      textData.value = editValue
+      emit('changeInput', props.metadata.name, textData)
+    }
   }
 }
+
 onMounted(async () => {
-  await parseMetadata(props.metadata)
+  await parseMetadata(props.metadata, props.editValue)
 })
 </script>
 

@@ -2,11 +2,15 @@
 import { defineProps, defineEmits, ref, onMounted, onActivated, onUpdated } from 'vue'
 import TableCell from '../components/TableCell.vue'
 import FormPopup from '../components/FormPopup.vue'
+import axios from "axios"
+import { config } from "../config"
 
 const props = defineProps(['tableData', 'name'])
 const rows = ref([])
 const formHidden = ref(true)
 const emit = defineEmits(['redraw'])
+const editData = ref([])
+const formKey = ref(0)
 
 const getData = (data) => {
   if (data[0] !== undefined && data[0].value !== undefined) {
@@ -27,12 +31,35 @@ const getData = (data) => {
 }
 
 const openPopup = (event) => {
+  redrawForm()
   formHidden.value = false
 }
 
 const closePopup = (event) => {
   formHidden.value = true
   emit('redraw')
+}
+
+const modifyRow = (row) => {
+  editData.value = row
+  openPopup()
+}
+
+const redrawForm = (event) => {
+  formKey.value++
+}
+
+const deleteRow = (row) => {
+  axios.delete(`${config.QUESTBOT_API_HOST}/${props.name}/${row[0]}`,
+  {
+    headers: {
+      'Auth-Type': 'web',
+      Authorization: `Bearer ${$cookies.get('token')}`,
+    },
+  })
+    .then((data) => {
+      emit('redraw')
+    })
 }
 </script>
 
@@ -42,6 +69,8 @@ const closePopup = (event) => {
     @closePopup="closePopup"
     :hidden="formHidden"
     :name="props.name"
+    :data="editData"
+    :key="formKey"
   />
   <button @click="openPopup">Создать</button>
   <div v-if="props.tableData !== undefined">
@@ -54,6 +83,12 @@ const closePopup = (event) => {
       <tbody>
         <tr v-for="(row, index) in getData(props.tableData)" :key="index">
           <TableCell v-for="(value, idx) in row" :key="idx" :cellValue="{ value }" />
+          <td>
+            <button @click="modifyRow(row)">Модифицировать</button>
+          </td>
+          <td>
+            <button @click="deleteRow(row)">Удалить</button>
+          </td>
         </tr>
       </tbody>
     </table>
