@@ -11,6 +11,7 @@ const state = ref('employees')
 const data = ref([])
 const $cookies = inject('$cookies')
 const key = ref(0)
+const fetchError = ref(false)
 
 const changeState = (event) => {
   axios
@@ -33,6 +34,7 @@ const changeState = (event) => {
           },
         })
         .then((res) => {
+          fetchError.value = false
           state.value = event
           res.data.forEach((row) => {
             Object.entries(row).forEach((value) => {
@@ -60,6 +62,9 @@ const changeState = (event) => {
       if (err.status === 403) {
         router.push('/auth')
       }
+      if (err.status === 404) {
+        fetchError.value = true
+      }
     })
 }
 
@@ -77,7 +82,9 @@ onMounted(() => {
     <Appbar :name="state" />
     <Sidebar @changeState="changeState" />
     <div class="container">
+      <span v-if="fetchError">Не удалось получить данные</span>
       <CustomTable
+        v-if="!fetchError"
         :key="key"
         :tableData="JSON.parse(JSON.stringify(data))"
         :name="state"

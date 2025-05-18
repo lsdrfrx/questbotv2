@@ -8,16 +8,12 @@ load_dotenv()
 
 
 class BaseService:
-    base_url = "http://{}:{}".format(
-        os.getenv("QUESTBOT_API_HOST", "localhost"),
-        os.getenv("QUESTBOT_API_PORT", 3000),
-    )
-
+    base_url = os.getenv("VITE_QUESTBOT_API_HOST")
     model_uri = ""
 
     headers = {
         "Auth-Type": "bot",
-        "Authorization": f"Bearer {os.getenv("QUESTBOT_API_AUTH_BOT_SECRET")}",
+        "Authorization": f"Bearer {os.getenv('QUESTBOT_API_AUTH_BOT_SECRET')}",
     }
 
     def __init__(self):
