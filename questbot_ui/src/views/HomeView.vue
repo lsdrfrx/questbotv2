@@ -1,95 +1,118 @@
 <script setup>
+import { ref, onMounted, inject } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { config } from '../config'
 import Sidebar from '../components/Sidebar.vue'
 import Appbar from '../components/Appbar.vue'
 import CustomTable from '../components/CustomTable.vue'
-import { ref, onMounted, onUpdated, inject } from 'vue'
-import axios from 'axios'
-import router from '../router/index'
-import { config } from '../config'
 
-const state = ref('employees')
-const data = ref([])
-const $cookies = inject('$cookies')
-const key = ref(0)
+const router = useRouter()
+
+// Состояния компонента
+const currentView = ref('employees')
+const tableData = ref([])
+const componentKey = ref(0)
 const fetchError = ref(false)
+const isLoading = ref(false)
 
-const changeState = (event) => {
-  axios
-    .get(`${config.QUESTBOT_API_HOST}/${event}/metadata`, {
-      headers: {
-        'Auth-Type': 'web',
-        Authorization: `Bearer ${$cookies.get('token')}`,
-      },
+// Заголовки для API запросов
+const apiHeaders = {
+  'Auth-Type': 'web',
+  Authorization: `Bearer ${inject('$cookies').get('token')}`,
+}
+
+// Обработка ошибок API
+const handleApiError = (error) => {
+  if (error.response?.status === 403) {
+    router.push('/auth')
+  } else if (error.response?.status === 404) {
+    fetchError.value = true
+  } else {
+    console.error('API Error:', error)
+  }
+}
+
+// Получение и преобразование данных таблицы
+const fetchTableData = async (endpoint) => {
+  try {
+    isLoading.value = true
+    fetchError.value = false
+
+    // Получаем метаданные
+    const metadataResponse = await axios.get(`${config.QUESTBOT_API_HOST}/${endpoint}/metadata`, {
+      headers: apiHeaders,
     })
-    .then((res) => {
-      state.value = event
-      return res.data
+
+    // Получаем данные
+    const dataResponse = await axios.get(`${config.QUESTBOT_API_HOST}/${endpoint}`, {
+      headers: apiHeaders,
     })
-    .then((resdata) => {
-      axios
-        .get(`${config.QUESTBOT_API_HOST}/${event}`, {
-          headers: {
-            'Auth-Type': 'web',
-            Authorization: `Bearer ${$cookies.get('token')}`,
-          },
-        })
-        .then((res) => {
-          fetchError.value = false
-          state.value = event
-          res.data.forEach((row) => {
-            Object.entries(row).forEach((value) => {
-              const key = value[0]
-              const val = value[1]
-              resdata.filter((v, k, a) => {
-                if (v.name === key) {
-                  if (resdata[k].value === undefined || resdata[k].value === null)
-                    resdata[k].value = []
-                  resdata[k].value.push(val)
-                }
-              })
-            })
-          })
-          data.value = resdata
-          key.value++
-        })
-        .catch((err) => {
-          if (err.status === 403) {
-            router.push('/auth')
-          }
-        })
-    })
-    .catch((err) => {
-      if (err.status === 403) {
-        router.push('/auth')
-      } else if (err.status === 404) {
-        fetchError.value = true
-      } else {
-        console.log(err)
+
+    // Формируем структуру таблицы
+    const formattedData = formatTableData(metadataResponse.data, dataResponse.data)
+
+    currentView.value = endpoint
+    tableData.value = formattedData
+    componentKey.value++
+  } catch (error) {
+    handleApiError(error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Преобразование данных в формат для таблицы
+const formatTableData = (metadata, rows) => {
+  // Создаем копию метаданных
+  const formatted = JSON.parse(JSON.stringify(metadata))
+
+  // Заполняем значения
+  rows.forEach((row) => {
+    Object.entries(row).forEach(([key, value]) => {
+      const column = formatted.find((col) => col.name === key)
+      if (column) {
+        column.value = column.value || []
+        column.value.push(value)
       }
     })
+  })
+
+  return formatted
 }
 
-const redraw = () => {
-  changeState(state.value)
+// Обработчик изменения состояния (переключение между разделами)
+const handleStateChange = (newState) => {
+  fetchTableData(newState)
 }
 
+// Обновление данных
+const refreshData = () => {
+  fetchTableData(currentView.value)
+}
+
+// Инициализация компонента
 onMounted(() => {
-  redraw()
+  refreshData()
 })
 </script>
 
 <template>
   <main>
-    <Appbar :name="state" />
-    <Sidebar @changeState="changeState" />
+    <Appbar :name="currentView" />
+    <Sidebar @changeState="handleStateChange" />
+
     <div class="container">
-      <span v-if="fetchError">Не удалось получить данные</span>
+      <div v-if="isLoading" class="loading-indicator">Загрузка данных...</div>
+
+      <span v-else-if="fetchError" class="error-message"> Не удалось получить данные </span>
+
       <CustomTable
-        v-if="!fetchError"
-        :key="key"
-        :tableData="JSON.parse(JSON.stringify(data))"
-        :name="state"
-        @redraw="redraw"
+        v-else
+        :key="componentKey"
+        :tableData="tableData"
+        :name="currentView"
+        @redraw="refreshData"
       />
     </div>
   </main>
@@ -100,5 +123,18 @@ onMounted(() => {
   margin-left: 270px;
   margin-top: 100px;
   margin-right: 30px;
+}
+
+.loading-indicator {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+}
+
+.error-message {
+  color: #c62828;
+  display: block;
+  padding: 1rem;
+  text-align: center;
 }
 </style>

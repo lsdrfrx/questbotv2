@@ -133,6 +133,11 @@ onMounted(async () => {
     await loadOptions()
   }
 })
+
+const openFindOrAddPopup = (event) => {
+  event.preventDefault()
+  emit('openFindOrAddPopup')
+}
 </script>
 
 <template>
@@ -190,7 +195,7 @@ onMounted(async () => {
     <div v-if="fieldType === 'findOrAdd'" class="find-or-add">
       <div class="flex">
         <input v-model="fieldValue" type="text" @keyup.enter="emit('saveQuestion', fieldValue)" />
-        <button @click="emit('openFindOrAddPopup')">Добавить вопрос</button>
+        <button @click="openFindOrAddPopup">Добавить вопрос</button>
       </div>
       <span>Чтобы добавить введённый вопрос, нажмите Enter</span>
     </div>
