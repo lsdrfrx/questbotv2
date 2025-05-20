@@ -3,7 +3,7 @@ import { Router, Request, Response } from "express";
 import { hash } from "crypto";
 
 import { config } from "../config";
-import PostgresSource from "../db";
+import { PostgresSource } from "../db";
 import { User } from "../entities/User";
 
 const authRouter = Router();

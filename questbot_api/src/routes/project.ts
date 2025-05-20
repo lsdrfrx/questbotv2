@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Project } from "../entities/Project";
-import PostgresSource from "../db";
+import { PostgresSource } from "../db";
 import { Employee } from "../entities/Employee";
 import { Chat } from "../entities/Chat";
 import { getManager } from "typeorm";

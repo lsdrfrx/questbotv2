@@ -7,16 +7,18 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 import { config } from '../config'
+import FindOrAddPopup from "../components/FindOrAddPopup.vue"
 
 const $cookies = inject('$cookies')
 const props = defineProps(['editValue', 'metadata'])
-const emit = defineEmits(["changeInput"])
+const emit = defineEmits(["changeInput", "saveQuestion"])
 
 const showDatepicker = ref(false)
 const showText = ref(false)
 const showCheckbox = ref(false)
 const showAutocomplete = ref(false)
 const showMultiselect = ref(false)
+const showFindOrAdd = ref(false)
 
 const datepickerData = ref()
 const textData = ref()
@@ -25,7 +27,10 @@ const autocompleteData = ref()
 const autocompleteOptions = ref([])
 const multiselectData = ref([])
 const multiselectOptions = ref([])
+const findOrAddData = ref([])
+const findOrAddOptions = ref([])
 
+// TODO: add FindOrAdd data parsing
 const parseMetadata = async (data, editValue=null) => {
   if (data.type === 'boolean') {
     showCheckbox.value = true
@@ -107,9 +112,27 @@ const parseMetadata = async (data, editValue=null) => {
 onMounted(async () => {
   await parseMetadata(props.metadata, props.editValue)
 })
+
+const showFindOrAddPopup = (event) => {
+  showFindOrAddPopup.value = true
+}
+
+const closeFindOrAddPopup = (event) => {
+  showFindOrAddPopup.value = false
+}
+
+const changeFindOrAddInput = (data) => {
+  console.log(data)
+}
 </script>
 
 <template>
+  <FindOrAddPopup 
+    v-if="showFindOrAddPopup"
+    @changeInput="changeFindOrAddInput"
+    @closePopup="closeFindOrAddPopup"
+    :options="findOrAddOptions"
+  />
   <input
     v-model="checkboxData"
     @input="$emit('changeInput', props.metadata.name, checkboxData)"
@@ -134,7 +157,7 @@ onMounted(async () => {
   />
   <Multiselect
     v-model="multiselectData"
-    @select="$emit('changeInput', props.metadata.name, autocompleteData.name)"
+    @select="$emit('changeInput', props.metadata.name, multiselectData.name)"
     v-if="showMultiselect"
     :multiple="true"
     :options="multiselectOptions"
@@ -147,6 +170,14 @@ onMounted(async () => {
     @text-submit="$emit('changeInput', props.metadata.name, datepickerData)"
     v-if="showDatepicker"
   />
+  <div>
+    <div class="flex">
+      <input type="text">
+      <button @click="showFindOrAddPopup">Добавить вопрос</button>
+    </div>
+    <span>Чтобы добавить введённый вопрос, нажмите Enter</span>
+  </div>
+
 </template>
 
 <style scoped>
@@ -167,5 +198,10 @@ input:focus {
 
 input[type='checkbox'] {
   width: 60px;
+}
+
+.flex {
+  display: flex;
+  flex-direction: row;
 }
 </style>

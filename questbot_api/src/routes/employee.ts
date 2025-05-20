@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Employee } from "../entities/Employee";
-import PostgresSource from "../db";
+import { PostgresSource } from "../db";
 
 const employeeRouter = Router();
 const repo = PostgresSource.getRepository(Employee);

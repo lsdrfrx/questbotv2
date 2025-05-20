@@ -1,7 +1,23 @@
 services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./mongo:/data/db
+    healthcheck:
+      test: mongosh -u $MONGO_USER -p $MONGO_PASSWORD --authenticationDatabase admin --quiet --eval "db.adminCommand('ping').ok"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - web
+
   postgres:
     image: postgres
-    restart: always
+    container_name: postgres
+    restart: unless-stopped
     env_file: .env
     volumes:
       - ./data:/var/lib/postgresql/data
@@ -14,12 +30,16 @@ services:
       - web
 
   api:
+    container_name: api
     build:
       context: ./questbot_api
       dockerfile: ./Dockerfile
-    restart: always
+    restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+        restart: true
+      mongodb:
         condition: service_healthy
         restart: true
     env_file: .env
@@ -34,10 +54,11 @@ services:
       - 9933:3000
 
   bot:
+    container_name: bot
     build:
       context: .
       dockerfile: ./questbot/Dockerfile
-    restart: always
+    restart: unless-stopped
     depends_on:
       api:
         condition: service_healthy
@@ -47,10 +68,11 @@ services:
       - web
 
   ui:
+    container_name: ui
     build:
       context: ./questbot_ui
       dockerfile: ./Dockerfile
-    restart: always
+    restart: unless-stopped
     depends_on:
       api:
         condition: service_healthy

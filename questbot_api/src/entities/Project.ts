@@ -5,10 +5,8 @@ import {
   PrimaryGeneratedColumn,
   ManyToMany,
   ManyToOne,
-  JoinColumn,
   JoinTable,
 } from "typeorm";
-import { User } from "./User";
 import { Employee } from "./Employee";
 import { Chat } from "./Chat";
 import { Division } from "./Division";

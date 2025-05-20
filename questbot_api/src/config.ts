@@ -14,4 +14,10 @@ export const config = {
   POSTGRES_USER: process.env.POSTGRES_USER || "postgres",
   POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD || "postgres",
   POSTGRES_DB: process.env.POSTGRES_DB || "questbot",
+
+  MONGO_HOST: process.env.MONGO_HOST || "localhost",
+  MONGO_PORT: process.env.MONGO_PORT || 27017,
+  MONGO_USER: process.env.MONGO_USER || "mongo",
+  MONGO_PASSWORD: process.env.MONGO_PASSWORD || "mongo",
+  MONGO_DB: process.env.MONGO_DB || "questbot",
 };

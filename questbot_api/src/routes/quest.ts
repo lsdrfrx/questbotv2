@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import PostgresSource from "../db";
+import { PostgresSource } from "../db";
 import { Quest } from "../entities/Quest";
 import { Employee } from "../entities/Employee";
 import { Project } from "../entities/Project";
