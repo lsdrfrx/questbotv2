@@ -4,8 +4,8 @@ import FormField from '../components/FormField.vue'
 import axios from 'axios'
 import { config } from '../config'
 
-const props = defineProps(['columns', 'data', 'closeForm', 'name'])
-const emit = defineEmits(['closePopup'])
+const props = defineProps(['columns', 'data', 'name'])
+const emit = defineEmits(['close', 'openFindOrAddPopup'])
 const fieldData = ref({})
 
 const createRow = (event) => {
@@ -18,7 +18,7 @@ const createRow = (event) => {
       },
     })
     .then((res) => {
-      emit('closePopup')
+      emit('close')
     })
 }
 
@@ -32,7 +32,7 @@ const modifyRow = (event) => {
       },
     })
     .then((res) => {
-      emit('closePopup')
+      emit('close')
     })
 }
 
@@ -42,7 +42,7 @@ const handleInput = (event, data) => {
 </script>
 
 <template>
-  <div @click.self="emit('closePopup')" class="dim">
+  <div @click.self="emit('close')" class="dim">
     <div class="container">
       <form>
         <div v-for="(column, index) in columns" :key="index" class="input">
@@ -51,7 +51,13 @@ const handleInput = (event, data) => {
           </span>
           <span class="required">{{ !column.required ? '*' : '' }}</span>
           <br />
-          <FormField @changeInput="handleInput" :editValue="props.data[index]" :metadata="column" :fieldData="fieldData" />
+          <FormField
+            @changeInput="handleInput"
+            @openFindOrAddPopup="$emit('openFindOrAddPopup')"
+            :editValue="props.data[index]"
+            :metadata="column"
+            :fieldData="fieldData"
+          />
         </div>
         <button v-if="Object.keys(props.data).length > 0" @click.self="modifyRow">Изменить</button>
         <button v-else @click.self="createRow">Создать</button>
@@ -88,17 +94,6 @@ form {
   background-color: var(--color-background-soft);
   padding: 30px;
   gap: 30px;
-}
-
-button {
-  margin: 0 auto;
-  color: var(--color-foreground);
-  background-color: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  padding: 8px;
-  width: 150px;
-  font-size: 18px;
-  transition: 0.2s all ease-in;
 }
 
 form button:hover {

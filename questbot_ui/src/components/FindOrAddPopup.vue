@@ -1,17 +1,20 @@
 <script setup>
-import { ref } from "vue";
-const props = defineProps(["options"]);
-const emit = defineEmits(["changeInput", "closePopup"]);
+import { ref } from 'vue'
+import Multiselect from 'vue-multiselect'
+import 'vue-multiselect/dist/vue-multiselect.min.css'
 
-const multiselectData = ref([]);
+const props = defineProps(['options'])
+const emit = defineEmits(['changeInput', 'close'])
+
+const multiselectData = ref([])
 
 const finishSelect = (event) => {
-  emit("changeInput", multiselectData.value)
+  emit('changeInput', multiselectData.value)
 }
 </script>
 
 <template>
-  <div @click.self="emit('closePopup')" class="dim">
+  <div @click.self="$emit('close')" class="dim">
     <div class="container">
       <Multiselect
         v-model="multiselectData"
@@ -41,11 +44,15 @@ const finishSelect = (event) => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   width: 450px;
-  height: 800px;
   overflow: auto;
   border-radius: 10px;
   background-color: var(--color-background);
+  padding: 30px;
 }
 
 button {

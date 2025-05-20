@@ -2,15 +2,17 @@
 import { defineProps, defineEmits, ref, onMounted, onActivated, onUpdated } from 'vue'
 import TableCell from '../components/TableCell.vue'
 import FormPopup from '../components/FormPopup.vue'
-import axios from "axios"
-import { config } from "../config"
+import FindOrAddPopup from '../components/FindOrAddPopup.vue'
+import axios from 'axios'
+import { config } from '../config'
 
 const props = defineProps(['tableData', 'name'])
 const rows = ref([])
-const formHidden = ref(true)
+const showForm = ref(false)
 const emit = defineEmits(['redraw'])
 const editData = ref([])
 const formKey = ref(0)
+const showFindOrAddPopup = ref(false)
 
 const getData = (data) => {
   if (data[0] !== undefined && data[0].value !== undefined) {
@@ -30,19 +32,29 @@ const getData = (data) => {
   }
 }
 
-const openPopup = (event) => {
+const openFormPopup = (event) => {
   redrawForm()
-  formHidden.value = false
+  showForm.value = true
 }
 
-const closePopup = (event) => {
-  formHidden.value = true
+const closeFormPopup = (event) => {
+  showForm.value = false
   emit('redraw')
+}
+
+const openFindOrAddPopup = (event) => {
+  console.log('SHOW')
+  showFindOrAddPopup.value = true
+}
+
+const closeFindOrAddPopup = (event) => {
+  showFindOrAddPopup.value = false
+  redrawForm()
 }
 
 const modifyRow = (row) => {
   editData.value = row
-  openPopup()
+  openFormPopup()
 }
 
 const redrawForm = (event) => {
@@ -50,13 +62,13 @@ const redrawForm = (event) => {
 }
 
 const deleteRow = (row) => {
-  axios.delete(`${config.QUESTBOT_API_HOST}/${props.name}/${row[0]}`,
-  {
-    headers: {
-      'Auth-Type': 'web',
-      Authorization: `Bearer ${$cookies.get('token')}`,
-    },
-  })
+  axios
+    .delete(`${config.QUESTBOT_API_HOST}/${props.name}/${row[0]}`, {
+      headers: {
+        'Auth-Type': 'web',
+        Authorization: `Bearer ${$cookies.get('token')}`,
+      },
+    })
     .then((data) => {
       emit('redraw')
     })
@@ -65,14 +77,17 @@ const deleteRow = (row) => {
 
 <template>
   <FormPopup
+    v-if="showForm"
+    @close="closeFormPopup"
+    @openFindOrAddPopup="openFindOrAddPopup"
     :columns="props.tableData"
-    @closePopup="closePopup"
-    :hidden="formHidden"
     :name="props.name"
     :data="editData"
     :key="formKey"
   />
-  <button @click="openPopup">Создать</button>
+  <FindOrAddPopup v-if="showFindOrAddPopup" :options="[]" @close="closeFindOrAddPopup" />
+
+  <button @click="openFormPopup">Создать</button>
   <div v-if="props.tableData !== undefined">
     <table>
       <thead>
@@ -99,17 +114,6 @@ const deleteRow = (row) => {
 <style scoped>
 button {
   margin-bottom: 10px;
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  padding: 4px;
-  border: 1px solid var(--color-border);
-  font-size: 18px;
-  transition: all 0.2s ease-in;
-}
-
-button:hover {
-  color: hsla(160, 100%, 37%, 1);
-  border: 1px solid hsla(160, 100%, 37%, 1);
 }
 
 table {

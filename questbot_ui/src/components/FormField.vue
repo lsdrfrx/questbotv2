@@ -7,11 +7,10 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 import { config } from '../config'
-import FindOrAddPopup from "../components/FindOrAddPopup.vue"
 
 const $cookies = inject('$cookies')
 const props = defineProps(['editValue', 'metadata'])
-const emit = defineEmits(["changeInput", "saveQuestion"])
+const emit = defineEmits(['changeInput', 'saveQuestion', 'openFindOrAddPopup'])
 
 const showDatepicker = ref(false)
 const showText = ref(false)
@@ -30,8 +29,13 @@ const multiselectOptions = ref([])
 const findOrAddData = ref([])
 const findOrAddOptions = ref([])
 
-// TODO: add FindOrAdd data parsing
-const parseMetadata = async (data, editValue=null) => {
+const openFindOrAddPopup = (event) => {
+  event.preventDefault()
+  emit('openFindOrAddPopup')
+}
+
+// WARN: Refactor this as soon as possible, it's horrible
+const parseMetadata = async (data, editValue = null) => {
   if (data.type === 'boolean') {
     showCheckbox.value = true
     if (editValue) {
@@ -44,6 +48,8 @@ const parseMetadata = async (data, editValue=null) => {
       datepickerData.value = editValue
       emit('changeInput', props.metadata.name, datepickerData)
     }
+  } else if (data.name === 'questions') {
+    showFindOrAdd.value = true
   } else if (data.relations !== undefined) {
     const options = await axios.get(`${config.QUESTBOT_API_HOST}/${data.relations}s`, {
       headers: {
@@ -113,26 +119,12 @@ onMounted(async () => {
   await parseMetadata(props.metadata, props.editValue)
 })
 
-const showFindOrAddPopup = (event) => {
-  showFindOrAddPopup.value = true
-}
-
-const closeFindOrAddPopup = (event) => {
-  showFindOrAddPopup.value = false
-}
-
 const changeFindOrAddInput = (data) => {
   console.log(data)
 }
 </script>
 
 <template>
-  <FindOrAddPopup 
-    v-if="showFindOrAddPopup"
-    @changeInput="changeFindOrAddInput"
-    @closePopup="closeFindOrAddPopup"
-    :options="findOrAddOptions"
-  />
   <input
     v-model="checkboxData"
     @input="$emit('changeInput', props.metadata.name, checkboxData)"
@@ -170,38 +162,23 @@ const changeFindOrAddInput = (data) => {
     @text-submit="$emit('changeInput', props.metadata.name, datepickerData)"
     v-if="showDatepicker"
   />
-  <div>
+  <div v-if="showFindOrAdd">
     <div class="flex">
-      <input type="text">
-      <button @click="showFindOrAddPopup">Добавить вопрос</button>
+      <input type="text" />
+      <button @click.self="openFindOrAddPopup">Добавить вопрос</button>
     </div>
     <span>Чтобы добавить введённый вопрос, нажмите Enter</span>
   </div>
-
 </template>
 
 <style scoped>
-input {
-  color: var(--color-foreground);
+button {
   background-color: var(--color-background-soft);
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 18px;
-  outline: none;
-  transition: 0.2s all ease-in;
-  width: 100%;
-}
-
-input:focus {
-  border-bottom: 1px solid hsla(160, 100%, 37%, 1);
-}
-
-input[type='checkbox'] {
-  width: 60px;
 }
 
 .flex {
   display: flex;
   flex-direction: row;
+  gap: 10px;
 }
 </style>

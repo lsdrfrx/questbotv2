@@ -28,14 +28,13 @@
   border-right: 1px solid var(--color-border);
 }
 .bar button {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
   font-size: 16px;
   padding: 10px;
   border: 0;
   border-bottom: 1px solid var(--color-border);
   text-align: left;
   transition: 0.2s ease-in all;
+  width: 100%;
 }
 
 .bar button:hover {

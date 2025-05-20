@@ -14,7 +14,7 @@ const errorText = ref('')
 const $cookies = inject('$cookies')
 
 const changeType = (type) => {
-  errorText.value = ""
+  errorText.value = ''
   selectedType.value = type
 }
 
@@ -36,24 +36,24 @@ const handleSubmitSignIn = (event) => {
     })
     .catch((err) => {
       if (err.status === 400) {
-        errorText.value = "Неверный логин или пароль"
+        errorText.value = 'Неверный логин или пароль'
       }
     })
 }
 
 const handleSubmitSignUp = (event) => {
   event.preventDefault()
-  console.log("signup")
+  console.log('signup')
 }
 </script>
 
 <template>
   <div class="auth">
     <div class="select_type">
-      <button @click="changeType('signin')" :class="{ 'active': selectedType === 'signin' }">
+      <button @click="changeType('signin')" :class="{ active: selectedType === 'signin' }">
         Вход
       </button>
-      <button @click="changeType('signup')" :class="{ 'active': selectedType === 'signup' }">
+      <button @click="changeType('signup')" :class="{ active: selectedType === 'signup' }">
         Регистрация
       </button>
     </div>
@@ -64,18 +64,18 @@ const handleSubmitSignUp = (event) => {
         <input type="password" v-model="password" placeholder="Пароль" />
 
         <button type="submit">Войти</button>
-        <span class="error" v-if="errorText !== ''">{{errorText}}</span>
+        <span class="error" v-if="errorText !== ''">{{ errorText }}</span>
       </form>
     </div>
 
     <div v-if="selectedType === 'signup'" class="form">
       <form @submit="handleSubmitSignUp">
-        <input v-model="username" placeholder="Имя пользователя"/>
+        <input v-model="username" placeholder="Имя пользователя" />
         <input type="password" v-model="password" placeholder="Пароль" />
         <input type="password" v-model="repeatPassword" placeholder="Повторите пароль" />
 
         <button type="submit">Зарегистрироваться</button>
-        <span class="error" v-if="errorText !== ''">{{errorText}}</span>
+        <span class="error" v-if="errorText !== ''">{{ errorText }}</span>
       </form>
     </div>
   </div>
@@ -117,20 +117,6 @@ form {
   padding: 32px;
   border-radius: 0 0 10px 10px;
   gap: 30px;
-}
-
-input {
-  color: var(--color-foreground);
-  background-color: var(--color-background-soft);
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 18px;
-  outline: none;
-  transition: 0.2s all ease-in;
-}
-
-input:focus {
-  border-bottom: 1px solid hsla(160, 100%, 37%, 1);
 }
 
 button {
