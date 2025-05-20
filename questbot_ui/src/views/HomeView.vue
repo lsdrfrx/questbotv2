@@ -61,9 +61,10 @@ const changeState = (event) => {
     .catch((err) => {
       if (err.status === 403) {
         router.push('/auth')
-      }
-      if (err.status === 404) {
+      } else if (err.status === 404) {
         fetchError.value = true
+      } else {
+        console.log(err)
       }
     })
 }
