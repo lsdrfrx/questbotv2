@@ -44,18 +44,4 @@ const logout = () => {
 .bar div * {
   padding: 0 10px;
 }
-
-.profile button {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  padding: 4px;
-  border: 1px solid var(--color-border);
-  font-size: 18px;
-  transition: all 0.2s ease-in;
-}
-
-.profile button:hover {
-  color: hsla(160, 100%, 37%, 1);
-  border: 1px solid hsla(160, 100%, 37%, 1);
-}
 </style>
