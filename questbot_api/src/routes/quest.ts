@@ -56,8 +56,6 @@ questRouter.get("/metadata", async (req: Request, res: Response) => {
     }
   });
 
-  console.log(list);
-
   res.json(list);
 });
 

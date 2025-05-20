@@ -60,8 +60,6 @@ projectRouter.post("/", async (req: Request, res: Response) => {
     startYear: data.startYear,
   });
 
-  console.log(project);
-
   if (data.chat !== undefined) {
     const chat = await chatRepo.findOneBy({
       name: data.chat,

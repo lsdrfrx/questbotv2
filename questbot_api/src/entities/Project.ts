@@ -16,19 +16,22 @@ export class Project {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column("text", { nullable: false })
+  @Column("text", { nullable: false, comment: "Название проекта" })
   projectName: string;
 
-  @Column("text", { nullable: true })
+  @Column("text", { nullable: true, comment: "Полное название проекта" })
   projectNameFull: string;
 
-  @Column("integer", { default: Number(moment().format("YYYY")) })
+  @Column("integer", {
+    default: Number(moment().format("YYYY")),
+    comment: "Год начала",
+  })
   startYear: number;
 
-  @Column("text", { nullable: true })
+  @Column("text", { nullable: true, comment: "Имя заказчика" })
   contractorName: string;
 
-  @Column("text", { nullable: true })
+  @Column("text", { nullable: true, comment: "Организация заказчика" })
   contractorOrganization: string;
 
   @ManyToOne(() => Employee, (employee) => employee.projects)

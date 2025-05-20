@@ -7,10 +7,10 @@ export class Division {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column("text")
+  @Column("text", { nullable: false, comment: "Подразделение" })
   entity: string;
 
-  @Column("text")
+  @Column("text", { nullable: false, comment: "Название" })
   name: string;
 
   @ManyToOne(() => Chat)
