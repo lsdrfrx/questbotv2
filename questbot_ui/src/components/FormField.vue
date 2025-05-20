@@ -1,4 +1,4 @@
-<script lang="jsx" setup>
+<script setup>
 import { defineProps, defineEmits, ref, inject, onUpdated, onMounted, watch } from 'vue'
 import axios from 'axios'
 import moment from 'moment'
@@ -8,166 +8,192 @@ import Multiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.min.css'
 import { config } from '../config'
 
-const $cookies = inject('$cookies')
-const props = defineProps(['editValue', 'metadata'])
+const props = defineProps({
+  editValue: {
+    type: [String, Number, Boolean, Array, Date, Object],
+    default: null,
+  },
+  metadata: {
+    type: Object,
+    required: true,
+    validator: (meta) => !!meta.name && !!meta.type,
+  },
+})
+
 const emit = defineEmits(['changeInput', 'saveQuestion', 'openFindOrAddPopup'])
 
-const showDatepicker = ref(false)
-const showText = ref(false)
-const showCheckbox = ref(false)
-const showAutocomplete = ref(false)
-const showMultiselect = ref(false)
-const showFindOrAdd = ref(false)
+// Состояния компонента
+const fieldType = ref('text')
+const fieldValue = ref(props.metadata.defaultValue)
+const options = ref([])
+const isLoading = ref(false)
 
-const datepickerData = ref()
-const textData = ref()
-const checkboxData = ref(props.metadata.defaultValue)
-const autocompleteData = ref()
-const autocompleteOptions = ref([])
-const multiselectData = ref([])
-const multiselectOptions = ref([])
-const findOrAddData = ref([])
-const findOrAddOptions = ref([])
-
-const openFindOrAddPopup = (event) => {
-  event.preventDefault()
-  emit('openFindOrAddPopup')
+// Критерии для разных типов отношений
+const RELATION_CRITERIA = {
+  employee: 'usernameShort',
+  project: 'projectName',
+  chat: 'name',
+  role: 'role',
+  division: 'name',
 }
 
-// WARN: Refactor this as soon as possible, it's horrible
-const parseMetadata = async (data, editValue = null) => {
-  if (data.type === 'boolean') {
-    showCheckbox.value = true
-    if (editValue) {
-      checkboxData.value = editValue
-      emit('changeInput', props.metadata.name, checkboxData)
-    }
-  } else if (data.name === 'deadline' || data.name === 'nextTime') {
-    showDatepicker.value = true
-    if (editValue) {
-      datepickerData.value = editValue
-      emit('changeInput', props.metadata.name, datepickerData)
-    }
-  } else if (data.name === 'questions') {
-    showFindOrAdd.value = true
-  } else if (data.relations !== undefined) {
-    const options = await axios.get(`${config.QUESTBOT_API_HOST}/${data.relations}s`, {
-      headers: {
-        'Auth-Type': 'web',
-        Authorization: `Bearer ${$cookies.get('token')}`,
-      },
+// URI для разных типов множественного выбора
+const MULTISELECT_URI = {
+  recepientChats: 'chat',
+  recepientEmployees: 'employee',
+  subprojects: 'project',
+}
+
+// Определяем тип поля
+const determineFieldType = () => {
+  const { type, name, relations, joins } = props.metadata
+
+  if (type === 'boolean') return 'checkbox'
+  if (name === 'deadline' || name === 'nextTime') return 'datepicker'
+  if (name === 'questions') return 'findOrAdd'
+  if (relations) return 'autocomplete'
+  if (joins) return 'multiselect'
+  return 'text'
+}
+
+// Загрузка опций для выпадающих списков
+const loadOptions = async () => {
+  const { relations, joins, name } = props.metadata
+
+  if (!relations && !joins) return
+
+  try {
+    isLoading.value = true
+    const uri = relations ? `${relations}s` : `${MULTISELECT_URI[name]}s`
+    const response = await axios.get(`${config.QUESTBOT_API_HOST}/${uri}`, {
+      headers: getAuthHeaders(),
     })
 
-    let criteria = ''
-    if (data.relations === 'employee') criteria = 'usernameShort'
-    else if (data.relations === 'project') criteria = 'projectName'
-    else if (data.relations === 'chat') criteria = 'name'
-    else if (data.relations === 'role') criteria = 'role'
-    else if (data.relations === 'division') criteria = 'name'
+    const criteria = relations
+      ? RELATION_CRITERIA[relations]
+      : RELATION_CRITERIA[MULTISELECT_URI[name]]
+    options.value = response.data.map((item) => ({
+      name: item[criteria],
+      // Сохраняем весь объект для использования в компоненте
+      ...item,
+    }))
 
-    showAutocomplete.value = true
-    autocompleteOptions.value = options.data.map((v) => {
-      return { name: v[criteria] }
-    })
-    if (editValue) {
-      autocompleteData.value = editValue
-      emit('changeInput', props.metadata.name, autocompleteData)
+    // Инициализация значения для multiselect
+    if (fieldType.value === 'multiselect' && props.editValue) {
+      fieldValue.value = options.value.filter((opt) => props.editValue.includes(opt.name))
     }
-  } else if (data.joins !== undefined) {
-    let uri
-    if (data.name === 'recepientChats') {
-      uri = 'chat'
-    }
-    if (data.name === 'recepientEmployees') {
-      uri = 'employee'
-    }
-    if (data.name === 'subprojects') {
-      uri = 'project'
-    }
-    const options = await axios.get(`${config.QUESTBOT_API_HOST}/${uri}s`, {
-      headers: {
-        'Auth-Type': 'web',
-        Authorization: `Bearer ${$cookies.get('token')}`,
-      },
-    })
-
-    let criteria = ''
-    if (uri === 'employee') criteria = 'usernameShort'
-    else if (uri === 'project') criteria = 'projectName'
-    else if (uri === 'chat') criteria = 'name'
-    else if (uri === 'role') criteria = 'role'
-    else if (uri === 'division') criteria = 'name'
-
-    showMultiselect.value = true
-    multiselectOptions.value = options.data.map((v) => {
-      return { name: v[criteria] }
-    })
-    if (editValue) {
-      multiselectData.value = editValue
-      emit('changeInput', props.metadata.name, multiselectData)
-    }
-  } else if (data.type === 'text' || data.type == 'integer') {
-    showText.value = true
-    if (editValue) {
-      textData.value = editValue
-      emit('changeInput', props.metadata.name, textData)
-    }
+  } catch (error) {
+    console.error('Failed to load options:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 
-onMounted(async () => {
-  await parseMetadata(props.metadata, props.editValue)
+// Получение заголовков авторизации
+const getAuthHeaders = () => ({
+  'Auth-Type': 'web',
+  Authorization: `Bearer ${inject('$cookies').get('token')}`,
 })
 
-const changeFindOrAddInput = (data) => {
-  console.log(data)
+// Обработчик изменения значения
+const handleInputChange = (value) => {
+  fieldValue.value = value
+
+  // Для autocomplete передаем только имя выбранного элемента
+  if (fieldType.value === 'autocomplete') {
+    emit('changeInput', props.metadata.name, value?.name || null)
+  }
+  // Для multiselect передаем массив имен выбранных элементов
+  else if (fieldType.value === 'multiselect') {
+    emit(
+      'changeInput',
+      props.metadata.name,
+      value.map((v) => v.name),
+    )
+  }
+  // Для остальных типов передаем значение как есть
+  else {
+    emit('changeInput', props.metadata.name, value)
+  }
 }
+
+// Инициализация компонента
+onMounted(async () => {
+  fieldType.value = determineFieldType()
+
+  // Инициализация значения
+  if (props.editValue !== null && props.editValue !== undefined) {
+    // Для multiselect значение устанавливается после загрузки options
+    if (fieldType.value !== 'multiselect') {
+      fieldValue.value = props.editValue
+    }
+  }
+
+  if (['autocomplete', 'multiselect'].includes(fieldType.value)) {
+    await loadOptions()
+  }
+})
 </script>
 
 <template>
-  <input
-    v-model="checkboxData"
-    @input="$emit('changeInput', props.metadata.name, checkboxData)"
-    v-if="showCheckbox"
-    type="checkbox"
-    checked="{props.metadata.defaultValue}"
-  />
-  <input
-    v-model="textData"
-    @input="$emit('changeInput', props.metadata.name, textData)"
-    v-if="showText"
-    type="text"
-  />
-  <Multiselect
-    v-model="autocompleteData"
-    @select="$emit('changeInput', props.metadata.name, autocompleteData.name)"
-    v-if="showAutocomplete"
-    :options="autocompleteOptions"
-    track-by="name"
-    label="name"
-    :hidden="!showAutocomplete"
-  />
-  <Multiselect
-    v-model="multiselectData"
-    @select="$emit('changeInput', props.metadata.name, multiselectData.name)"
-    v-if="showMultiselect"
-    :multiple="true"
-    :options="multiselectOptions"
-    :close-on-select="false"
-    track-by="name"
-    label="name"
-  />
-  <Datepicker
-    v-model="datepickerData"
-    @text-submit="$emit('changeInput', props.metadata.name, datepickerData)"
-    v-if="showDatepicker"
-  />
-  <div v-if="showFindOrAdd">
-    <div class="flex">
-      <input type="text" />
-      <button @click.self="openFindOrAddPopup">Добавить вопрос</button>
+  <div class="form-field">
+    <!-- Checkbox поле -->
+    <input
+      v-if="fieldType === 'checkbox'"
+      v-model="fieldValue"
+      type="checkbox"
+      @change="handleInputChange(fieldValue)"
+    />
+
+    <!-- Текстовое поле -->
+    <input
+      v-if="fieldType === 'text'"
+      v-model="fieldValue"
+      type="text"
+      @input="handleInputChange(fieldValue)"
+    />
+
+    <!-- Автодополнение -->
+    <Multiselect
+      v-if="fieldType === 'autocomplete'"
+      v-model="fieldValue"
+      :options="options"
+      :loading="isLoading"
+      track-by="name"
+      label="name"
+      @select="handleInputChange($event)"
+      @remove="handleInputChange(null)"
+    />
+
+    <!-- Множественный выбор -->
+    <Multiselect
+      v-if="fieldType === 'multiselect'"
+      v-model="fieldValue"
+      :multiple="true"
+      :options="options"
+      :loading="isLoading"
+      :close-on-select="false"
+      track-by="name"
+      label="name"
+      @select="handleInputChange(fieldValue)"
+      @remove="handleInputChange(fieldValue)"
+    />
+
+    <!-- Датапикер -->
+    <Datepicker
+      v-if="fieldType === 'datepicker'"
+      v-model="fieldValue"
+      @update:model-value="handleInputChange($event)"
+    />
+
+    <!-- Поиск и добавление -->
+    <div v-if="fieldType === 'findOrAdd'" class="find-or-add">
+      <div class="flex">
+        <input v-model="fieldValue" type="text" @keyup.enter="emit('saveQuestion', fieldValue)" />
+        <button @click="emit('openFindOrAddPopup')">Добавить вопрос</button>
+      </div>
+      <span>Чтобы добавить введённый вопрос, нажмите Enter</span>
     </div>
-    <span>Чтобы добавить введённый вопрос, нажмите Enter</span>
   </div>
 </template>
 

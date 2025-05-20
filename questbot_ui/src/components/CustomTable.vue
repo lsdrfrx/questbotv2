@@ -1,114 +1,129 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, onActivated, onUpdated } from 'vue'
+import { ref, computed } from 'vue'
+import axios from 'axios'
+import { config } from '../config'
+import { inject } from 'vue'
+
 import TableCell from '../components/TableCell.vue'
 import FormPopup from '../components/FormPopup.vue'
 import FindOrAddPopup from '../components/FindOrAddPopup.vue'
-import axios from 'axios'
-import { config } from '../config'
 
-const props = defineProps(['tableData', 'name'])
-const rows = ref([])
-const showForm = ref(false)
+const $cookies = inject('$cookies')
+
+const props = defineProps({
+  tableData: {
+    type: Array,
+    default: () => [],
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+})
+
 const emit = defineEmits(['redraw'])
+
+// Состояния компонента
+const showForm = ref(false)
+const showFindOrAddPopup = ref(false)
 const editData = ref([])
 const formKey = ref(0)
-const showFindOrAddPopup = ref(false)
+const isDeleting = ref(false)
 
-const getData = (data) => {
-  if (data[0] !== undefined && data[0].value !== undefined) {
-    const rows = []
-    if (data[0].value === null) {
-      return rows
-    }
-    for (let i = 0; i < data[0].value.length; i++) {
-      const cells = []
-      for (let j = 0; j < data.length; j++) {
-        if (data[j].value === undefined || data[j].value === null) cells.push(null)
-        else cells.push(data[j].value[i])
-      }
-      rows.push(cells)
-    }
-    return rows
-  }
+// Получение данных таблицы в нужном формате
+const tableRows = computed(() => {
+  if (!props.tableData?.length || !props.tableData[0]?.value) return []
+
+  return props.tableData[0].value.map((_, rowIndex) =>
+    props.tableData.map((column) => column.value?.[rowIndex] ?? null),
+  )
+})
+
+// Управление попапами
+const togglePopup = {
+  form: (open = true, data = []) => {
+    editData.value = data
+    showForm.value = open
+    if (open) formKey.value++
+    else emit('redraw')
+  },
+  findOrAdd: (open = true) => {
+    showFindOrAddPopup.value = open
+    if (!open) formKey.value++
+  },
 }
 
-const openFormPopup = (event) => {
-  redrawForm()
-  showForm.value = true
-}
-
-const closeFormPopup = (event) => {
-  showForm.value = false
-  emit('redraw')
-}
-
-const openFindOrAddPopup = (event) => {
-  console.log('SHOW')
-  showFindOrAddPopup.value = true
-}
-
-const closeFindOrAddPopup = (event) => {
-  showFindOrAddPopup.value = false
-  redrawForm()
-}
-
-const modifyRow = (row) => {
-  editData.value = row
-  openFormPopup()
-}
-
-const redrawForm = (event) => {
-  formKey.value++
-}
-
-const deleteRow = (row) => {
-  axios
-    .delete(`${config.QUESTBOT_API_HOST}/${props.name}/${row[0]}`, {
+// Удаление строки
+const deleteRow = async (row) => {
+  try {
+    isDeleting.value = true
+    await axios.delete(`${config.QUESTBOT_API_HOST}/${props.name}/${row[0]}`, {
       headers: {
         'Auth-Type': 'web',
         Authorization: `Bearer ${$cookies.get('token')}`,
       },
     })
-    .then((data) => {
-      emit('redraw')
-    })
+  } catch (error) {
+    console.error('Ошибка при удалении:', error)
+  } finally {
+    emit('redraw')
+    isDeleting.value = false
+  }
 }
 </script>
 
 <template>
-  <FormPopup
-    v-if="showForm"
-    @close="closeFormPopup"
-    @openFindOrAddPopup="openFindOrAddPopup"
-    :columns="props.tableData"
-    :name="props.name"
-    :data="editData"
-    :key="formKey"
-  />
-  <FindOrAddPopup v-if="showFindOrAddPopup" :options="[]" @close="closeFindOrAddPopup" />
+  <div class="table-container">
+    <button @click="togglePopup.form(true, [])">Создать</button>
 
-  <button @click="openFormPopup">Создать</button>
-  <div v-if="props.tableData !== undefined">
-    <table>
-      <thead>
-        <tr>
-          <TableCell v-for="value in props.tableData" :key="value.id" :cellValue="{ value }" />
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(row, index) in getData(props.tableData)" :key="index">
-          <TableCell v-for="(value, idx) in row" :key="idx" :cellValue="{ value }" />
-          <td>
-            <button @click="modifyRow(row)">Модифицировать</button>
-          </td>
-          <td>
-            <button @click="deleteRow(row)">Удалить</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <FormPopup
+      v-if="showForm"
+      @close="togglePopup.form(false)"
+      @openFindOrAddPopup="togglePopup.findOrAdd(true)"
+      :columns="props.tableData"
+      :name="props.name"
+      :data="editData"
+      :key="'form_' + formKey"
+    />
+
+    <FindOrAddPopup
+      v-if="showFindOrAddPopup"
+      :options="[]"
+      @close="togglePopup.findOrAdd(false)"
+      :key="'find_' + formKey"
+    />
+
+    <div v-if="props.tableData?.length" class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <TableCell
+              v-for="column in props.tableData"
+              :key="column.id"
+              :cellValue="{ value: column }"
+            />
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, rowIndex) in tableRows" :key="rowIndex">
+            <TableCell
+              v-for="(value, colIndex) in row"
+              :key="`${rowIndex}_${colIndex}`"
+              :cellValue="{ value }"
+            />
+            <td class="actions">
+              <button @click="togglePopup.form(true, row)">Изменить</button>
+              <button @click="deleteRow(row)" :disabled="isDeleting" class="danger">
+                {{ isDeleting ? 'Удаление...' : 'Удалить' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div v-else class="no-data">Не удалось получить данные</div>
   </div>
-  <div v-else>Не удалось получить данные</div>
 </template>
 
 <style scoped>
@@ -129,5 +144,37 @@ td {
 
 tbody > tr:nth-of-type(even) {
   background-color: var(--color-background-soft);
+}
+
+.table-container {
+  width: 100%;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.actions button {
+  margin-bottom: 0;
+  margin-right: 5px;
+}
+
+.danger {
+  color: #ff4444;
+  border-color: #ff4444;
+}
+
+.danger:disabled {
+  opacity: 0.6;
+}
+
+.no-data {
+  padding: 10px;
+  text-align: center;
+  color: #666;
 }
 </style>

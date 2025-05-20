@@ -1,7 +1,8 @@
 <script setup>
-import { defineProps, defineEmits, ref, inject, onMounted } from 'vue'
-import FormField from '../components/FormField.vue'
 import axios from 'axios'
+import { ref } from 'vue'
+
+import FormField from '../components/FormField.vue'
 import { config } from '../config'
 
 const props = defineProps(['columns', 'data', 'name'])
