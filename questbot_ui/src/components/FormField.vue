@@ -5,7 +5,6 @@ import moment from 'moment'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Multiselect from 'vue-multiselect'
-import 'vue-multiselect/dist/vue-multiselect.min.css'
 import { config } from '../config'
 
 const props = defineProps({
@@ -18,9 +17,13 @@ const props = defineProps({
     required: true,
     validator: (meta) => !!meta.name && !!meta.type,
   },
+  findOrAddData: {
+    type: [String, Object],
+    default: [],
+  },
 })
 
-const emit = defineEmits(['changeInput', 'saveQuestion', 'openFindOrAddPopup'])
+const emit = defineEmits(['changeInput', 'saveQuestion', 'openFindOrAddPopup', 'handleInput'])
 
 // Состояния компонента
 const fieldType = ref('text')
@@ -43,6 +46,8 @@ const MULTISELECT_URI = {
   recepientEmployees: 'employee',
   subprojects: 'project',
 }
+
+const HIDDEN_FIELDS = ['id', 'created_at']
 
 // Определяем тип поля
 const determineFieldType = () => {
@@ -141,63 +146,82 @@ const openFindOrAddPopup = (event) => {
 </script>
 
 <template>
-  <div class="form-field">
-    <!-- Checkbox поле -->
-    <input
-      v-if="fieldType === 'checkbox'"
-      v-model="fieldValue"
-      type="checkbox"
-      @change="handleInputChange(fieldValue)"
-    />
+  <div v-if="!HIDDEN_FIELDS.includes(props.metadata.name)">
+    <span class="label">{{ props.metadata.label ?? props.metadata.name }} </span>
+    <span class="required">{{ !props.metadata.required ? '*' : '' }}</span>
+    <br />
+    <div class="form-field">
+      <!-- Checkbox поле -->
+      <input
+        v-if="fieldType === 'checkbox'"
+        v-model="fieldValue"
+        type="checkbox"
+        @change="handleInputChange(fieldValue)"
+      />
 
-    <!-- Текстовое поле -->
-    <input
-      v-if="fieldType === 'text'"
-      v-model="fieldValue"
-      type="text"
-      @input="handleInputChange(fieldValue)"
-    />
+      <!-- Текстовое поле -->
+      <input
+        v-if="fieldType === 'text'"
+        v-model="fieldValue"
+        type="text"
+        @input="handleInputChange(fieldValue)"
+      />
 
-    <!-- Автодополнение -->
-    <Multiselect
-      v-if="fieldType === 'autocomplete'"
-      v-model="fieldValue"
-      :options="options"
-      :loading="isLoading"
-      track-by="name"
-      label="name"
-      @select="handleInputChange($event)"
-      @remove="handleInputChange(null)"
-    />
+      <!-- Автодополнение -->
+      <Multiselect
+        v-if="fieldType === 'autocomplete'"
+        v-model="fieldValue"
+        :options="options"
+        :loading="isLoading"
+        track-by="name"
+        label="name"
+        @select="handleInputChange($event)"
+        @remove="handleInputChange(null)"
+      />
 
-    <!-- Множественный выбор -->
-    <Multiselect
-      v-if="fieldType === 'multiselect'"
-      v-model="fieldValue"
-      :multiple="true"
-      :options="options"
-      :loading="isLoading"
-      :close-on-select="false"
-      track-by="name"
-      label="name"
-      @select="handleInputChange(fieldValue)"
-      @remove="handleInputChange(fieldValue)"
-    />
+      <!-- Множественный выбор -->
+      <Multiselect
+        v-if="fieldType === 'multiselect'"
+        v-model="fieldValue"
+        :multiple="true"
+        :options="options"
+        :loading="isLoading"
+        :close-on-select="false"
+        track-by="name"
+        label="name"
+        @select="handleInputChange(fieldValue)"
+        @remove="handleInputChange(fieldValue)"
+      />
 
-    <!-- Датапикер -->
-    <Datepicker
-      v-if="fieldType === 'datepicker'"
-      v-model="fieldValue"
-      @update:model-value="handleInputChange($event)"
-    />
+      <!-- Датапикер -->
+      <Datepicker
+        v-if="fieldType === 'datepicker'"
+        v-model="fieldValue"
+        @update:model-value="handleInputChange($event)"
+      />
 
-    <!-- Поиск и добавление -->
-    <div v-if="fieldType === 'findOrAdd'" class="find-or-add">
-      <div class="flex">
-        <input v-model="fieldValue" type="text" @keyup.enter="emit('saveQuestion', fieldValue)" />
-        <button @click="openFindOrAddPopup">Добавить вопрос</button>
+      <!-- Поиск и добавление -->
+      <div v-if="fieldType === 'findOrAdd'" class="find-or-add">
+        <div class="flex">
+          <input v-model="fieldValue" type="text" @keyup.enter="emit('saveQuestion', fieldValue)" />
+          <button @click.self="openFindOrAddPopup">Добавить вопрос</button>
+        </div>
+        <span>Чтобы добавить введённый вопрос, нажмите Enter</span>
+        <div class="flex" v-for="(question, index) in findOrAddData" :key="'question_' + index">
+          <div class="chip">
+            {{ question.text }}
+            <div class="flex" v-if="question.options.length > 0">
+              <div
+                v-for="(option, optionIndex) in question.options"
+                :class="{ green: option.finalizing }"
+                :key="'question_' + index + '_option_' + optionIndex"
+              >
+                {{ option.text }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <span>Чтобы добавить введённый вопрос, нажмите Enter</span>
     </div>
   </div>
 </template>
@@ -211,5 +235,26 @@ button {
   display: flex;
   flex-direction: row;
   gap: 10px;
+}
+
+span.label {
+  font-size: 18px;
+  display: flexbox;
+  padding-right: 5px;
+}
+
+span.required {
+  color: red;
+}
+
+.chip {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 4px;
+  margin: 4px 0;
+}
+
+.green {
+  color: hsla(160, 100%, 37%, 1);
 }
 </style>

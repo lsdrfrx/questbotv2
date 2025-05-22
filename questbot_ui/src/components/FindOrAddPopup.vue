@@ -1,16 +1,38 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, inject, onMounted } from 'vue'
+import axios from 'axios'
 import Multiselect from 'vue-multiselect'
-import 'vue-multiselect/dist/vue-multiselect.min.css'
+import { config } from '../config'
 
 const props = defineProps(['options'])
-const emit = defineEmits(['changeInput', 'close'])
+const emit = defineEmits(['handleInput', 'close'])
 
+const questions = ref([])
 const multiselectData = ref([])
 
-const finishSelect = (event) => {
-  emit('changeInput', multiselectData.value)
+// Заголовки для API запросов
+const apiHeaders = {
+  'Auth-Type': 'web',
+  Authorization: `Bearer ${inject('$cookies').get('token')}`,
 }
+
+const finishSelect = (event) => {
+  emit('handleInput', 'findOrAdd', multiselectData.value)
+  emit('close')
+}
+
+const fetchQuestions = async () => {
+  const questionsResponse = await axios.get(`${config.QUESTBOT_API_HOST}/questions`, {
+    headers: apiHeaders,
+  })
+  questions.value = questionsResponse.data.map((v) => {
+    return { text: v.text, options: v.options }
+  })
+}
+
+onMounted(async () => {
+  await fetchQuestions()
+})
 </script>
 
 <template>
@@ -19,10 +41,10 @@ const finishSelect = (event) => {
       <Multiselect
         v-model="multiselectData"
         :multiple="true"
-        :options="props.options"
+        :options="questions"
         :close-on-select="false"
-        track-by="name"
-        label="name"
+        track-by="text"
+        label="text"
       />
       <button @click="finishSelect">Добавить</button>
     </div>
@@ -49,6 +71,9 @@ const finishSelect = (event) => {
   flex-direction: column;
   gap: 10px;
   width: 450px;
+  height: fit-content;
+  min-height: 380px;
+  max-height: 800px;
   overflow: auto;
   border-radius: 10px;
   background-color: var(--color-background);
@@ -56,13 +81,11 @@ const finishSelect = (event) => {
 }
 
 button {
-  margin: 0 auto;
-  color: var(--color-foreground);
+  position: absolute;
   background-color: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  padding: 8px;
   width: 150px;
-  font-size: 18px;
-  transition: 0.2s all ease-in;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 </style>

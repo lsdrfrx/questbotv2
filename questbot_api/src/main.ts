@@ -11,18 +11,12 @@ import roleRouter from "./routes/role";
 import chatRouter from "./routes/chat";
 import divisionRouter from "./routes/division";
 import userRouter from "./routes/user";
+import questionRouter from "./routes/question";
 import { adminOnlyMiddleware, authMiddleware } from "./middlewares";
 
 const app = express();
 
 // Inject middlewares
-app.use(
-  cors({
-    origin: "*",
-    methods: "*",
-    allowedHeaders: "*",
-  }),
-);
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(morgan("[:method] :url Status :status :response-time ms"));
@@ -40,6 +34,7 @@ app.use("/api/projects", authMiddleware, projectRouter);
 app.use("/api/quests", authMiddleware, questRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/roles", authMiddleware, roleRouter);
+app.use("/api/questions", authMiddleware, questionRouter);
 app.use("/api/divisions", authMiddleware, divisionRouter);
 app.use("/api/chats", authMiddleware, chatRouter);
 app.use("/api/users", adminOnlyMiddleware, userRouter);

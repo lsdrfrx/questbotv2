@@ -1,8 +1,7 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import axios from 'axios'
 import { config } from '../config'
-import { inject } from 'vue'
 
 import TableCell from '../components/TableCell.vue'
 import FormPopup from '../components/FormPopup.vue'
@@ -21,7 +20,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['redraw'])
+const emit = defineEmits(['redraw', 'handleInput'])
 
 // Состояния компонента
 const showForm = ref(false)
@@ -29,6 +28,7 @@ const showFindOrAddPopup = ref(false)
 const editData = ref([])
 const formKey = ref(0)
 const isDeleting = ref(false)
+const fieldData = ref({})
 
 // Получение данных таблицы в нужном формате
 const tableRows = computed(() => {
@@ -70,6 +70,10 @@ const deleteRow = async (row) => {
     isDeleting.value = false
   }
 }
+
+const handleInput = (event, data) => {
+  fieldData.value[event] = data
+}
 </script>
 
 <template>
@@ -80,15 +84,18 @@ const deleteRow = async (row) => {
       v-if="showForm"
       @close="togglePopup.form(false)"
       @openFindOrAddPopup="togglePopup.findOrAdd(true)"
+      @handleInput="handleInput"
       :columns="props.tableData"
       :name="props.name"
       :data="editData"
       :key="'form_' + formKey"
+      :fieldData="fieldData"
+      :findOrAddData="fieldData['findOrAdd']"
     />
 
     <FindOrAddPopup
       v-if="showFindOrAddPopup"
-      :options="[]"
+      @handleInput="handleInput"
       @close="togglePopup.findOrAdd(false)"
       :key="'find_' + formKey"
     />
