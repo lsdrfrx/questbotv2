@@ -25,10 +25,12 @@ userRouter.get("/metadata", async (req: Request, res: Response) => {
 // Get all users
 userRouter.get("/", async (req: Request, res: Response) => {
   const users = await repo.find();
-  res.json(users.map((u) => {
-    u.hashedPassword = "HIDDEN"
-    return u
-  }));
+  res.json(
+    users.map((u) => {
+      u.hashedPassword = "HIDDEN";
+      return u;
+    }),
+  );
 });
 
 // Get user by ID
@@ -40,7 +42,7 @@ userRouter.get("/:id", async (req: Request, res: Response) => {
     res.status(404).json({ message: "user not found" });
   }
 
-  user.hashedPassword = "HIDDEN"
+  user.hashedPassword = "HIDDEN";
 
   res.json(user);
 });
@@ -55,17 +57,20 @@ userRouter.post("/", async (req: Request, res: Response) => {
 
 // Modify user
 userRouter.put("/:id", async (req: Request, res: Response) => {
-  let user = await repo.findOneBy({
+  const data = req.body;
+  const user = await repo.findOneBy({
     id: Number(req.params.id),
   });
   if (user === null) {
     res.status(404).json({ message: "user not found" });
   }
 
-  user = repo.merge(user, req.body);
-  await repo.save(user);
+  delete data.hashedPassword;
 
-  res.json(user);
+  const updatedUser = repo.merge(user, data);
+  await repo.save(updatedUser);
+
+  res.json(updatedUser);
 });
 
 // Delete user by ID

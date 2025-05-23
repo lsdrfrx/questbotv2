@@ -106,14 +106,14 @@ const handleInputChange = (value) => {
 
   // Для autocomplete передаем только имя выбранного элемента
   if (fieldType.value === 'autocomplete') {
-    emit('changeInput', props.metadata.name, value?.name || null)
+    emit('changeInput', props.metadata.name, value.id || null)
   }
   // Для multiselect передаем массив имен выбранных элементов
   else if (fieldType.value === 'multiselect') {
     emit(
       'changeInput',
       props.metadata.name,
-      value.map((v) => v.name),
+      value.map((v) => v.id),
     )
   }
   // Для остальных типов передаем значение как есть
@@ -245,13 +245,6 @@ span.label {
 
 span.required {
   color: red;
-}
-
-.chip {
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 4px;
-  margin: 4px 0;
 }
 
 .green {

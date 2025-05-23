@@ -5,11 +5,16 @@ import { Employee } from "../entities/Employee";
 import { Project } from "../entities/Project";
 import { Role } from "../entities/Role";
 import moment from "moment";
+import { Question } from "../entities/Question";
+import { In } from "typeorm";
+import { Chat } from "../entities/Chat";
 
 const questRepo = PostgresSource.getRepository(Quest);
 const employeeRepo = PostgresSource.getRepository(Employee);
 const projectRepo = PostgresSource.getRepository(Project);
 const roleRepo = PostgresSource.getRepository(Role);
+const questionRepo = PostgresSource.getRepository(Question);
+const chatRepo = PostgresSource.getRepository(Chat);
 
 const questRouter = Router();
 
@@ -61,7 +66,16 @@ questRouter.get("/metadata", async (req: Request, res: Response) => {
 
 // Get all quests
 questRouter.get("/", async (req: Request, res: Response) => {
-  const quests = await questRepo.find();
+  const quests = await questRepo.find({
+    relations: {
+      employee: true,
+      recepientChats: true,
+      recepientEmployees: true,
+      project: true,
+      role: true,
+      questioner: true,
+    },
+  });
   res.json(quests);
 });
 
@@ -79,9 +93,10 @@ questRouter.get("/:id", async (req: Request, res: Response) => {
 // Create new quest
 questRouter.post("/", async (req: Request, res: Response) => {
   const data = req.body;
+  console.log(data);
 
   const employee = await employeeRepo.findOneBy({
-    id: Number(data.employeeId),
+    id: Number(data.employee),
   });
   if (employee === null) {
     res.status(404).json({ message: "employee not found" });
@@ -89,7 +104,7 @@ questRouter.post("/", async (req: Request, res: Response) => {
   }
 
   const questioner = await employeeRepo.findOneBy({
-    id: Number(data.questionerId),
+    id: Number(data.questioner),
   });
   if (questioner === null) {
     res.status(404).json({ message: "employee not found" });
@@ -97,21 +112,30 @@ questRouter.post("/", async (req: Request, res: Response) => {
   }
 
   const role = await roleRepo.findOneBy({
-    role: data.role,
+    id: Number(data.role),
   });
   if (role === null) {
     res.status(404).json({ message: "role not found" });
     return;
   }
 
+  const recepientEmployees = await employeeRepo.find({
+    where: { id: In(data.recepientEmployees) },
+  });
+  const recepientChats = await chatRepo.find({
+    where: { id: In(data.recepientChats) },
+  });
+
   const nextTime = moment(data.nextTime);
   const deadline = moment(data.deadline);
 
   const quest = questRepo.create({
     questName: data.questName,
-    questions: data.questions,
+    questions: data.questions || [],
     reminders: data.reminders,
     timeToAnswer: data.timeToAnswer,
+    recepientChats: recepientChats,
+    recepientEmployees: recepientEmployees,
     employee: employee,
     questioner: questioner,
     nextTime: nextTime.isValid ? nextTime.toDate() : null,

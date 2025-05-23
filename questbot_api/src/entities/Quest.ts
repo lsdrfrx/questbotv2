@@ -37,8 +37,8 @@ export class Quest {
   })
   timeSetByEmployee: boolean;
 
-  @Column("integer", { default: 60 * 40, comment: "Время на ответ" })
-  timeToAnswer: number;
+  @Column("text", { default: "40m", comment: "Время на ответ" })
+  timeToAnswer: string;
 
   @Column("text", { nullable: true, comment: "Инкремент времени" })
   timeIncrement: string;

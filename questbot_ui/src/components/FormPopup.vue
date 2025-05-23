@@ -17,9 +17,8 @@ const findOrAddData = ref(props.findOrAddData || [])
 
 const createRow = (event) => {
   event.preventDefault()
-  console.log(props.fieldData)
   axios
-    .post(`${config.QUESTBOT_API_HOST}/${props.name}`, props.fieldData.value, {
+    .post(`${config.QUESTBOT_API_HOST}/${props.name}`, props.fieldData, {
       headers: apiHeaders,
     })
     .then((res) => {
@@ -30,7 +29,7 @@ const createRow = (event) => {
 const modifyRow = (event) => {
   event.preventDefault()
   axios
-    .put(`${config.QUESTBOT_API_HOST}/${props.name}/${props.data[0]}`, props.fieldData.value, {
+    .put(`${config.QUESTBOT_API_HOST}/${props.name}/${props.data[0]}`, props.fieldData, {
       headers: apiHeaders,
     })
     .then((res) => {

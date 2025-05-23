@@ -4,11 +4,13 @@ import { PostgresSource } from "../db";
 import { Employee } from "../entities/Employee";
 import { Chat } from "../entities/Chat";
 import { getManager } from "typeorm";
+import { Division } from "../entities/Division";
 
 const projectRouter = Router();
 const repo = PostgresSource.getRepository(Project);
 const employeeRepo = PostgresSource.getRepository(Employee);
 const chatRepo = PostgresSource.getRepository(Chat);
+const divisionRepo = PostgresSource.getRepository(Division);
 
 projectRouter.get("/metadata", async (req: Request, res: Response) => {
   const metadata = repo.metadata.columns;
@@ -28,7 +30,16 @@ projectRouter.get("/metadata", async (req: Request, res: Response) => {
 });
 // Get all projects
 projectRouter.get("/", async (req: Request, res: Response) => {
-  const projects = await repo.find();
+  const projects = await repo.find({
+    relations: {
+      subprojects: true,
+      responsibleEmployee: true,
+      chat: true,
+      bureau: true,
+      branch: true,
+      club: true,
+    },
+  });
   res.json(projects);
 });
 
@@ -62,7 +73,7 @@ projectRouter.post("/", async (req: Request, res: Response) => {
 
   if (data.chat !== undefined) {
     const chat = await chatRepo.findOneBy({
-      name: data.chat,
+      id: Number(data.chat),
     });
 
     if (chat === null) {
@@ -75,7 +86,7 @@ projectRouter.post("/", async (req: Request, res: Response) => {
 
   if (data.responsibleEmployee !== undefined) {
     const employee = await employeeRepo.findOneBy({
-      usernameShort: data.responsibleEmployee,
+      id: Number(data.responsibleEmployee),
     });
 
     if (employee === null) {
@@ -86,7 +97,47 @@ projectRouter.post("/", async (req: Request, res: Response) => {
     project.responsibleEmployee = employee;
   }
 
+  if (data.branch !== undefined) {
+    const branch = await divisionRepo.findOneBy({
+      id: Number(data.branch),
+    });
+
+    if (branch === null) {
+      res.status(404).json({ message: "employee not found" });
+      return;
+    }
+
+    project.branch = branch;
+  }
+
+  if (data.club !== undefined) {
+    const club = await divisionRepo.findOneBy({
+      id: Number(data.club),
+    });
+
+    if (club === null) {
+      res.status(404).json({ message: "club not found" });
+      return;
+    }
+
+    project.club = club;
+  }
+
+  if (data.bureau !== undefined) {
+    const bureau = await divisionRepo.findOneBy({
+      id: Number(data.bureau),
+    });
+
+    if (bureau === null) {
+      res.status(404).json({ message: "bureau not found" });
+      return;
+    }
+
+    project.bureau = bureau;
+  }
+
   const result = await repo.save(project);
+  console.log(result);
   res.json(result);
 });
 

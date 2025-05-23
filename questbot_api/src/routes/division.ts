@@ -2,9 +2,12 @@ import { Router, Request, Response } from "express";
 import { PostgresSource } from "../db";
 import { Division } from "../entities/Division";
 import { Chat } from "../entities/Chat";
+import { Employee } from "../entities/Employee";
 
 const repo = PostgresSource.getRepository(Division);
 const chatRepo = PostgresSource.getRepository(Chat);
+const employeeRepo = PostgresSource.getRepository(Employee);
+
 const divisionRouter = Router();
 
 divisionRouter.get("/metadata", async (req: Request, res: Response) => {
@@ -26,7 +29,12 @@ divisionRouter.get("/metadata", async (req: Request, res: Response) => {
 
 // Get all divisions
 divisionRouter.get("/", async (req: Request, res: Response) => {
-  const divisions = await repo.find();
+  const divisions = await repo.find({
+    relations: {
+      chat: true,
+      leader: true,
+    },
+  });
   res.json(divisions);
 });
 
@@ -59,6 +67,16 @@ divisionRouter.post("/", async (req: Request, res: Response) => {
       res.status(404).json({ message: "chat not found" });
     }
     division.chat = chat;
+  }
+
+  if (data.leader !== undefined) {
+    const leader = await employeeRepo.findOneBy({
+      id: Number(data.leader),
+    });
+    if (leader === null) {
+      res.status(404).json({ message: "chat not found" });
+    }
+    division.leader = leader;
   }
 
   await repo.save(division);
