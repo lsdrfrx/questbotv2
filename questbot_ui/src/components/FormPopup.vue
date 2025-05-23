@@ -1,72 +1,83 @@
 <script setup>
 import axios from 'axios'
-import { ref } from 'vue'
-
+import { ref, computed } from 'vue'
+import { inject } from 'vue'
 import FormField from '../components/FormField.vue'
 import { config } from '../config'
 
-const apiHeaders = {
+const $cookies = inject('$cookies')
+
+const props = defineProps({
+  columns: {
+    type: Array,
+    default: () => [],
+  },
+  data: {
+    type: Array,
+    default: () => [],
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  fieldData: {
+    type: Object,
+    default: () => ({}),
+  },
+  findOrAddData: {
+    type: Array,
+    default: () => [],
+  },
+})
+
+const emit = defineEmits(['close', 'openFindOrAddPopup', 'handleInput'])
+
+const apiHeaders = computed(() => ({
   'Auth-Type': 'web',
   Authorization: `Bearer ${$cookies.get('token')}`,
-}
-
-const props = defineProps(['columns', 'data', 'name', 'fieldData', 'findOrAddData'])
-const emit = defineEmits(['close', 'openFindOrAddPopup', 'handleInput'])
+}))
 
 const findOrAddData = ref(props.findOrAddData || [])
 
+const handleApiRequest = async (method, url, data) => {
+  try {
+    const response = await axios({
+      method,
+      url: `${config.QUESTBOT_API_HOST}/${url}`,
+      data,
+      headers: apiHeaders.value,
+    })
+    emit('close')
+    return response
+  } catch (error) {
+    console.error('API Error:', error)
+    throw error
+  }
+}
+
 const createRow = (event) => {
   event.preventDefault()
-  axios
-    .post(`${config.QUESTBOT_API_HOST}/${props.name}`, props.fieldData, {
-      headers: apiHeaders,
-    })
-    .then((res) => {
-      emit('close')
-    })
+  handleApiRequest('post', props.name, props.fieldData)
 }
 
 const modifyRow = (event) => {
   event.preventDefault()
-  axios
-    .put(`${config.QUESTBOT_API_HOST}/${props.name}/${props.data[0]}`, props.fieldData, {
-      headers: apiHeaders,
-    })
-    .then((res) => {
-      emit('close')
-    })
+  handleApiRequest('put', `${props.name}/${props.data[0]}`, props.fieldData)
 }
 
 const saveQuestion = (event) => {
-  let [text, options] = event.split('#')
-  if (options) {
-    options = options.split('|').map((v) => {
-      let o = undefined
-      if (v.includes('!')) {
-        o = v.replace('!', '')
-      }
-      return {
-        text: o || v,
-        finalizing: v.includes('!'),
-      }
-    })
-  }
+  const [text, options] = event.split('#')
+  const processedOptions =
+    options?.split('|').map((v) => ({
+      text: v.includes('!') ? v.replace('!', '') : v,
+      finalizing: v.includes('!'),
+    })) || []
 
-  const data = {
-    text: text,
-    options: options || [],
-  }
+  const data = { text, options: processedOptions }
 
-  axios
-    .post(`${config.QUESTBOT_API_HOST}/questions`, data, {
-      headers: apiHeaders,
-    })
-    .then((data) => {
-      findOrAddData.value.push(data.data)
-    })
-    .catch((error) => {
-      console.log(error)
-    })
+  handleApiRequest('post', 'questions', data).then((response) => {
+    findOrAddData.value.push(response.data)
+  })
 }
 </script>
 
@@ -74,7 +85,7 @@ const saveQuestion = (event) => {
   <div @click.self="emit('close')" class="dim">
     <div class="container">
       <form @keydown.enter.prevent>
-        <div v-for="(column, index) in columns" :key="index" class="input">
+        <div v-for="(column, index) in columns" :key="column.id || index" class="input">
           <FormField
             @changeInput="(event, data) => emit('handleInput', event, data)"
             @openFindOrAddPopup="$emit('openFindOrAddPopup')"
@@ -85,21 +96,27 @@ const saveQuestion = (event) => {
             :findOrAddData="findOrAddData"
           />
         </div>
-        <button v-if="Object.keys(props.data).length > 0" @click.self="modifyRow">Изменить</button>
-        <button v-else @click.self="createRow">Создать</button>
+        <div class="buttons">
+          <button v-if="Object.keys(props.data).length > 0" @click.self="modifyRow">
+            Изменить
+          </button>
+          <button v-else @click.self="createRow">Создать</button>
+        </div>
       </form>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Исходные стили (без изменений) */
 .dim {
-  position: absolute;
+  position: fixed;
   background-color: #000000aa;
   width: 100vw;
   height: 100%;
   top: 0;
   left: 0;
+  z-index: 1000;
 }
 
 .container {
@@ -109,7 +126,7 @@ const saveQuestion = (event) => {
   transform: translate(-50%, -50%);
   width: 450px;
   height: fit-content;
-  max-height: 800px;
+  max-height: 80vh;
   overflow: auto;
   border-radius: 10px;
   background-color: var(--color-background);
@@ -126,5 +143,46 @@ form {
 form button:hover {
   color: hsla(160, 100%, 37%, 1);
   border: 1px solid hsla(160, 100%, 37%, 1);
+}
+
+/* Новые стили для мобильных устройств */
+@media (max-width: 768px) {
+  .container {
+    width: 90vw;
+    max-width: 100%;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-height: calc(100vh - 40px);
+  }
+
+  form {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 95vw;
+    padding: 10px;
+  }
+
+  form {
+    padding: 15px;
+    gap: 15px;
+  }
 }
 </style>

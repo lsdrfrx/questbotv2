@@ -5,6 +5,7 @@ import router from '../router/index'
 const $cookies = inject('$cookies')
 
 const props = defineProps(['name'])
+const emit = defineEmits(['toggleSidebar'])
 
 const logout = () => {
   $cookies.remove('token')
@@ -15,7 +16,7 @@ const logout = () => {
 <template>
   <div class="bar">
     <div class="page">
-      <button>menu</button>
+      <button @click="emit('toggleSidebar')">menu</button>
       <span>{{ props.name }}</span>
     </div>
     <div class="profile">

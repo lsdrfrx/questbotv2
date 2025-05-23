@@ -28,6 +28,7 @@ projectRouter.get("/metadata", async (req: Request, res: Response) => {
     }),
   );
 });
+
 // Get all projects
 projectRouter.get("/", async (req: Request, res: Response) => {
   const projects = await repo.find({

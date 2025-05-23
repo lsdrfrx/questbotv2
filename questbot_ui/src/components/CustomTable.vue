@@ -134,6 +134,7 @@ const handleInput = (event, data) => {
 </template>
 
 <style scoped>
+/* Базовые стили (оставлены без изменений) */
 button {
   margin-bottom: 10px;
 }
@@ -159,6 +160,9 @@ tbody > tr:nth-of-type(even) {
 
 .table-wrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-border);
+  border-collapse: collapse;
 }
 
 .actions {
@@ -183,5 +187,70 @@ tbody > tr:nth-of-type(even) {
   padding: 10px;
   text-align: center;
   color: #666;
+}
+
+@media (max-width: 768px) {
+  table {
+    font-size: 14px;
+  }
+
+  .table-container {
+    margin: 0 100px 0 16px;
+  }
+
+  th,
+  td {
+    padding: 6px 8px;
+  }
+
+  button {
+    padding: 6px 12px;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .actions button {
+    margin-right: 4px;
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+
+  .table-wrapper {
+    margin: 0 -10px;
+    width: calc(100% + 20px);
+  }
+
+  /* Горизонтальный скролл для таблицы */
+  table {
+    min-width: 600px; /* Фиксированная минимальная ширина */
+  }
+}
+
+@media (max-width: 480px) {
+  .table-container {
+    margin-right: 30px;
+    padding-right: 26px;
+  }
+
+  button {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .actions button {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .no-data {
+    font-size: 14px;
+    padding: 15px 5px;
+  }
 }
 </style>

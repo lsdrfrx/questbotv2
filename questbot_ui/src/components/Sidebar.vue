@@ -1,7 +1,9 @@
-<script setup></script>
+<script setup>
+const props = defineProps(['show'])
+</script>
 
 <template>
-  <div class="bar">
+  <div v-if="show" class="bar">
     <button @click="$emit('changeState', 'employees')">Сотрудники</button>
     <button @click="$emit('changeState', 'projects')">Проекты</button>
     <button @click="$emit('changeState', 'quests')">Квесты</button>
@@ -19,10 +21,9 @@
   background-color: var(--color-background);
   display: flex;
   flex-direction: column;
-  width: 250px;
-  height: 100%;
+  width: fit-content;
+  height: calc(100vh - 48px);
   padding: 10px;
-  position: fixed;
   left: 0;
   top: 48px;
   border-right: 1px solid var(--color-border);

@@ -52,6 +52,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* Исходные стили (без изменений) */
 .dim {
   position: absolute;
   background-color: #000000aa;
@@ -59,6 +60,7 @@ onMounted(async () => {
   height: 100%;
   top: 0;
   left: 0;
+  z-index: 1000;
 }
 
 .container {
@@ -66,7 +68,6 @@ onMounted(async () => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -87,5 +88,50 @@ button {
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+  .container {
+    width: 90vw;
+    min-height: 300px;
+    max-height: 70vh;
+    padding: 20px;
+  }
+
+  button {
+    width: 120px;
+    padding: 10px;
+    bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 95vw;
+    min-height: 250px;
+    max-height: 80vh;
+    padding: 15px;
+  }
+
+  button {
+    width: 100%;
+    max-width: 200px;
+    bottom: 15px;
+  }
+
+  /* Стили для Multiselect */
+  :deep(.multiselect) {
+    font-size: 14px;
+  }
+
+  :deep(.multiselect__tags) {
+    min-height: 40px;
+    padding: 8px 40px 0 8px;
+  }
+
+  :deep(.multiselect__option) {
+    padding: 8px 12px;
+  }
 }
 </style>

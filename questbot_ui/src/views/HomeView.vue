@@ -15,6 +15,11 @@ const tableData = ref([])
 const componentKey = ref(0)
 const fetchError = ref(false)
 const isLoading = ref(false)
+const showSidebar = ref(false)
+
+const toggleSidebar = () => {
+  showSidebar.value = !showSidebar.value
+}
 
 // Заголовки для API запросов
 const apiHeaders = {
@@ -99,30 +104,34 @@ onMounted(() => {
 
 <template>
   <main>
-    <Appbar :name="currentView" />
-    <Sidebar @changeState="handleStateChange" />
-
+    <Appbar @toggleSidebar="toggleSidebar" :name="currentView" />
     <div class="container">
-      <div v-if="isLoading" class="loading-indicator">Загрузка данных...</div>
+      <Sidebar @changeState="handleStateChange" :show="showSidebar" />
 
-      <span v-else-if="fetchError" class="error-message"> Не удалось получить данные </span>
+      <div class="container">
+        <div v-if="isLoading" class="loading-indicator">Загрузка данных...</div>
 
-      <CustomTable
-        v-else
-        :key="componentKey"
-        :tableData="tableData"
-        :name="currentView"
-        @redraw="refreshData"
-      />
+        <span v-else-if="fetchError" class="error-message"> Не удалось получить данные </span>
+
+        <CustomTable
+          v-else
+          :key="componentKey"
+          :tableData="tableData"
+          :name="currentView"
+          @redraw="refreshData"
+        />
+      </div>
     </div>
   </main>
 </template>
 
 <style scoped>
 .container {
-  margin-left: 270px;
-  margin-top: 100px;
-  margin-right: 30px;
+  display: flex;
+  margin-top: 48px;
+  overflow: hidden;
+  gap: 22px;
+  margin-right: 12px;
 }
 
 .loading-indicator {

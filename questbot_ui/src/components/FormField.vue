@@ -247,6 +247,13 @@ span.required {
   color: red;
 }
 
+.chip {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 4px;
+  margin: 4px 0;
+}
+
 .green {
   color: hsla(160, 100%, 37%, 1);
 }
